@@ -1,9 +1,3 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
-
 import { columnModel } from '~/models/columnModel'
 import { boardModel } from '~/models/boardModel'
 import { cardModel } from '~/models/cardModel'
@@ -28,7 +22,9 @@ const createNew = async (reqBody) => {
     }
 
     return getNewColumn
-  } catch (error) { throw error }
+  } catch (error) {
+    throw error
+  }
 }
 
 const update = async (columnId, reqBody) => {
@@ -40,7 +36,9 @@ const update = async (columnId, reqBody) => {
     const updatedColumn = await columnModel.update(columnId, updateData)
 
     return updatedColumn
-  } catch (error) { throw error }
+  } catch (error) {
+    throw error
+  }
 }
 
 const deleteItem = async (columnId) => {
@@ -61,7 +59,9 @@ const deleteItem = async (columnId) => {
     await boardModel.pullColumnOrderIds(targetColumn)
 
     return { deleteResult: 'Column and its Cards deleted successfully!' }
-  } catch (error) { throw error }
+  } catch (error) {
+    throw error
+  }
 }
 
 export const columnService = {

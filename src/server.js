@@ -1,10 +1,3 @@
-/* eslint-disable no-console */
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
-
 import express from 'express'
 import cors from 'cors'
 import { corsOptions } from '~/config/cors'
@@ -13,12 +6,28 @@ import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb'
 import { env } from '~/config/environment'
 import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import cookieParser from 'cookie-parser'
+
+// Xử lý socket real-time với gói socket.io
+// https://socket.io/get-started/chat/#integrating-socketio
+import http from 'http'
+import socketIo from 'socket.io'
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 
 const START_SERVER = () => {
   const app = express()
+  // Fix cái vụ Cache from disk của ExpressJS
+  // https://stackoverflow.com/a/53240717/8324172
+  app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
 
   // Xử lý CORS
   app.use(cors(corsOptions))
+
+  // cấu hình cookie parser
+  app.use(cookieParser())
 
   // Enable req.body json data
   app.use(express.json())
@@ -29,15 +38,26 @@ const START_SERVER = () => {
   // Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
 
+  // tạo mới một server bọc thằng app cảu expess để cấu hình tính năng real-time
+  const server = http.createServer(app)
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    inviteUserToBoardSocket(socket)
+  })
+
   // Môi trường Production (cụ thể hiện tại là đang support Render.com)
   if (env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT, () => {
-      console.log(`3. Production: Hi ${env.AUTHOR}, Back-end Server is running successfully at Port: ${process.env.PORT}`)
+    server.listen(process.env.PORT, () => {
+      console.log(
+        `3. Production: Hi ${env.AUTHOR}, Back-end Server is running successfully at Port: ${process.env.PORT}`
+      )
     })
   } else {
     // Môi trường Local Dev
-    app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
-      console.log(`3. Local DEV: Hi ${env.AUTHOR}, Back-end Server is running successfully at Host: ${env.LOCAL_DEV_APP_HOST} and Port: ${env.LOCAL_DEV_APP_PORT}`)
+    server.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
+      console.log(
+        `3. Local DEV: Hi ${env.AUTHOR}, Back-end Server is running successfully at Host: ${env.LOCAL_DEV_APP_HOST} and Port: ${env.LOCAL_DEV_APP_PORT}`
+      )
     })
   }
 
@@ -52,7 +72,7 @@ const START_SERVER = () => {
 
 // Chỉ khi Kết nối tới Database thành công thì mới Start Server Back-end lên.
 // Immediately-invoked / Anonymous Async Functions (IIFE)
-(async () => {
+;(async () => {
   try {
     console.log('1. Connecting to MongoDB Cloud Atlas...')
     await CONNECT_DB()
