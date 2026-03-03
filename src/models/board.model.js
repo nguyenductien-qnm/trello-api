@@ -3,10 +3,10 @@ import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { BOARD_TYPES } from '~/utils/constants'
-import { columnModel } from '~/models/columnModel'
-import { cardModel } from '~/models/cardModel'
+import { columnModel } from '~/models/column.model'
+import { cardModel } from '~/models/card.model'
 import { pagingSkipValue } from '~/utils/algorithms'
-import { userModel } from './userModel'
+import { userModel } from './user.model'
 
 // Define Collection (Name & Schema)
 const BOARD_COLLECTION_NAME = 'boards'

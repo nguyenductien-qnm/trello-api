@@ -3,8 +3,8 @@ import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { INVITATION_TYPES, BOARD_INVITATION_STATUS } from '~/utils/constants'
-import { userModel } from './userModel'
-import { boardModel } from './boardModel'
+import { userModel } from './user.model'
+import { boardModel } from './board.model'
 
 // Define Collection (name & schema)
 const INVITATION_COLLECTION_NAME = 'invitations'

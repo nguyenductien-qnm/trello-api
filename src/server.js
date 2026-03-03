@@ -4,8 +4,8 @@ import { corsOptions } from '~/config/cors'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb'
 import { env } from '~/config/environment'
-import { APIs_V1 } from '~/routes/v1'
-import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { APIs_V1 } from '~/routes/v1/_index.route'
+import { errorHandlingMiddleware } from '~/middlewares/errorHandling.middleware'
 import cookieParser from 'cookie-parser'
 
 // Xử lý socket real-time với gói socket.io

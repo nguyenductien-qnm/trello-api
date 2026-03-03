@@ -1,4 +1,4 @@
-import { userModel } from '~/models/userModel'
+import { userModel } from '~/models/user.model'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import bcryptjs from 'bcryptjs'
@@ -10,8 +10,8 @@ import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
-const createNew = async (reqBody) => {
-  try {
+class UserService {
+  static createNew = async (reqBody) => {
     const existsUser = await userModel.findOneByEmail(reqBody.email)
     if (existsUser) {
       throw new ApiError(StatusCodes.CONFLICT, 'Email already exists!')
@@ -38,13 +38,9 @@ const createNew = async (reqBody) => {
    `
     sendEmailService(getNewUser.email, customSubject, htmlContent)
     return pickUser(getNewUser)
-  } catch (error) {
-    throw error
   }
-}
 
-const verifyAccount = async (reqBody) => {
-  try {
+  static verifyAccount = async (reqBody) => {
     const existsUser = await userModel.findOneByEmail(reqBody.email)
     if (!existsUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -65,13 +61,9 @@ const verifyAccount = async (reqBody) => {
     const updatedUser = await userModel.update(existsUser._id, updateData)
 
     return pickUser(updatedUser)
-  } catch (error) {
-    throw error
   }
-}
 
-const login = async (reqBody) => {
-  try {
+  static login = async (reqBody) => {
     const existUser = await userModel.findOneByEmail(reqBody.email)
 
     if (!existUser)
@@ -98,26 +90,19 @@ const login = async (reqBody) => {
     const accessToken = await JwtProvider.generateToken(
       userInfo,
       env.ACCESS_TOKEN_SECRET_SIGNATURE,
-      // env.ACCESS_TOKEN_LIFE
-      60
+      env.ACCESS_TOKEN_LIFE
     )
 
     const refreshToken = await JwtProvider.generateToken(
       userInfo,
       env.REFRESH_TOKEN_SECRET_SIGNATURE,
-      // env.REFRESH_TOKEN_LIFE
-      60
+      env.REFRESH_TOKEN_LIFE
     )
 
     return { ...pickUser(existUser), accessToken, refreshToken }
-  } catch (error) {
-    throw error
   }
-}
 
-const refreshToken = async (clientRefreshToken) => {
-  try {
-    // Bước 01: Thực hiện giải mã token xem nó có hợp lệ hay là không
+  static refreshToken = async (clientRefreshToken) => {
     const refreshTokenDecoded = await JwtProvider.verifyToken(
       clientRefreshToken,
       env.REFRESH_TOKEN_SECRET_SIGNATURE
@@ -135,13 +120,9 @@ const refreshToken = async (clientRefreshToken) => {
     )
 
     return { accessToken }
-  } catch (error) {
-    throw error
   }
-}
 
-const update = async (userId, reqBody, userAvatarFile) => {
-  try {
+  static update = async (userId, reqBody, userAvatarFile) => {
     const existUser = await userModel.findOneById(userId)
     if (!existUser)
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -176,15 +157,6 @@ const update = async (userId, reqBody, userAvatarFile) => {
       updatedUser = await userModel.update(existUser._id, reqBody)
     }
     return pickUser(updatedUser)
-  } catch (error) {
-    throw error
   }
 }
-
-export const userService = {
-  createNew,
-  verifyAccount,
-  login,
-  refreshToken,
-  update
-}
+export default UserService

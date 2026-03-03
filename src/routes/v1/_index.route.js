@@ -1,10 +1,10 @@
 import express from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { boardRoute } from '~/routes/v1/boardRoute'
-import { columnRoute } from '~/routes/v1/columnRoute'
-import { cardRoute } from '~/routes/v1/cardRoute'
-import { userRoute } from '~/routes/v1/userRoute'
-import { invitationRoute } from './invitationRoute'
+import { boardRoute } from '~/routes/v1/board.route'
+import { columnRoute } from '~/routes/v1/column.route'
+import { cardRoute } from '~/routes/v1/card.route'
+import { userRoute } from '~/routes/v1/user.route'
+import { invitationRoute } from './invitation.route'
 const Router = express.Router()
 
 /** Check APIs v1/status */

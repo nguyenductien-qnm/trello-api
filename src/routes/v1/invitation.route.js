@@ -1,25 +1,25 @@
 import express from 'express'
 import { invitationValidation } from '~/validations/invitationValidation'
-import { invitationController } from '~/controllers/invitationController'
-import { authMiddleware } from '~/middlewares/authMiddleware'
+import { authMiddleware } from '~/middlewares/auth.middleware'
+import InvitationController from '~/controllers/invitation.controller'
 
 const Router = express.Router()
 
 Router.route('/board').post(
   authMiddleware.isAuthorized,
   invitationValidation.createNewBoardInvitation,
-  invitationController.createNewBoardInvitation
+  InvitationController.createNewBoardInvitation
 )
 
 Router.route('/').get(
   authMiddleware.isAuthorized,
-  invitationController.getInvitations
+  InvitationController.getInvitations
 )
 
 // Cập nhật một bản ghi Board Invitation
 Router.route('/board/:invitationId').put(
   authMiddleware.isAuthorized,
-  invitationController.updateBoardInvitation
+  InvitationController.updateBoardInvitation
 )
 
 export const invitationRoute = Router

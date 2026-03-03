@@ -1,22 +1,22 @@
 import express from 'express'
 import { cardValidation } from '~/validations/cardValidation'
-import { cardController } from '~/controllers/cardController'
-import { authMiddleware } from '~/middlewares/authMiddleware'
-import { multerUploadMiddleware } from '~/middlewares/multerUploadMiddleware'
+import { authMiddleware } from '~/middlewares/auth.middleware'
+import { multerUploadMiddleware } from '~/middlewares/multerUpload.middleware'
+import CardController from '~/controllers/card.controller'
 
 const Router = express.Router()
 
 Router.route('/').post(
   authMiddleware.isAuthorized,
   cardValidation.createNew,
-  cardController.createNew
+  CardController.createNew
 )
 
 Router.route('/:id').put(
   authMiddleware.isAuthorized,
   multerUploadMiddleware.upload.single('cardCover'),
   cardValidation.update,
-  cardController.update
+  CardController.update
 )
 
 export const cardRoute = Router

@@ -1,29 +1,21 @@
-import { cardModel } from '~/models/cardModel'
-import { columnModel } from '~/models/columnModel'
+import { cardModel } from '~/models/card.model'
+import { columnModel } from '~/models/column.model'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
-const createNew = async (reqBody) => {
-  try {
-    // Xử lý logic dữ liệu tùy đặc thù dự án
+class CardService {
+  static createNew = async (reqBody) => {
     const newCard = {
       ...reqBody
     }
     const createdCard = await cardModel.createNew(newCard)
     const getNewCard = await cardModel.findOneById(createdCard.insertedId)
 
-    if (getNewCard) {
-      // Cập nhật mảng cardOrderIds trong collection columns
-      await columnModel.pushCardOrderIds(getNewCard)
-    }
+    if (getNewCard) await columnModel.pushCardOrderIds(getNewCard)
 
     return getNewCard
-  } catch (error) {
-    throw error
   }
-}
 
-const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
-  try {
+  static update = async (cardId, reqBody, cardCoverFile, userInfo) => {
     const updateData = {
       ...reqBody,
       updatedAt: Date.now()
@@ -56,12 +48,7 @@ const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
     }
 
     return updatedCard
-  } catch (error) {
-    throw error
   }
 }
 
-export const cardService = {
-  createNew,
-  update
-}
+export default CardService
