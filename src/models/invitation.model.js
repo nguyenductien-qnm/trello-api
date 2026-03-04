@@ -6,23 +6,19 @@ import { INVITATION_TYPES, BOARD_INVITATION_STATUS } from '~/utils/constants'
 import { userModel } from './user.model'
 import { boardModel } from './board.model'
 
-// Define Collection (name & schema)
 const INVITATION_COLLECTION_NAME = 'invitations'
 const INVITATION_COLLECTION_SCHEMA = Joi.object({
   inviterId: Joi.string()
     .required()
     .pattern(OBJECT_ID_RULE)
-    .message(OBJECT_ID_RULE_MESSAGE), // người đi mời
+    .message(OBJECT_ID_RULE_MESSAGE),
   inviteeId: Joi.string()
     .required()
     .pattern(OBJECT_ID_RULE)
-    .message(OBJECT_ID_RULE_MESSAGE), // người được mời
-  // Kiểu của cái lời mời invitation
+    .message(OBJECT_ID_RULE_MESSAGE),
   type: Joi.string()
     .required()
     .valid(...Object.values(INVITATION_TYPES)),
-
-  // Lời mời là board thì sẽ lưu thêm dữ liệu boardInvitation - optional
   boardInvitation: Joi.object({
     boardId: Joi.string()
       .required()
@@ -38,7 +34,6 @@ const INVITATION_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false)
 })
 
-// Chỉ định ra những Fields mà chúng ta không muốn cho phép cập nhật trong hàm update()
 const INVALID_UPDATE_FIELDS = [
   '_id',
   'inviterId',
