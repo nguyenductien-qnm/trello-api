@@ -15,7 +15,7 @@ class CardController {
     try {
       const cardId = req.params.id
       const cardCoverFile = req.file
-      const userInfo = req.jwtDecoded
+      const userInfo = req.userContext
       const updatedCard = await CardService.update(
         cardId,
         req.body,

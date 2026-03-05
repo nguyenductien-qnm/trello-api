@@ -4,7 +4,7 @@ import InvitationService from '~/services/invitation.service'
 class InvitationController {
   static createNewBoardInvitation = async (req, res, next) => {
     try {
-      const inviterId = req.jwtDecoded._id
+      const inviterId = req.userContext._id
       const resInvitation = await InvitationService.createNewBoardInvitation(
         req.body,
         inviterId
@@ -18,7 +18,7 @@ class InvitationController {
 
   static getInvitations = async (req, res, next) => {
     try {
-      const userId = req.jwtDecoded._id
+      const userId = req.userContext._id
       const resInvitation = await InvitationService.getInvitations(userId)
       res.status(StatusCodes.OK).json(resInvitation)
     } catch (error) {
@@ -28,7 +28,7 @@ class InvitationController {
 
   static updateBoardInvitation = async (req, res, next) => {
     try {
-      const userId = req.jwtDecoded._id
+      const userId = req.userContext._id
       const { invitationId } = req.params
       const { status } = req.body
       const updatedInvitation = await InvitationService.updateBoardInvitation(

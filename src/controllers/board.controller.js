@@ -1,66 +1,51 @@
-import { StatusCodes } from 'http-status-codes'
+import {
+  CreatedSuccessResponse,
+  OkSuccessResponse
+} from '~/core/success.response'
 import BoardService from '~/services/board.service'
 
 class BoardController {
-  static getBoards = async (req, res, next) => {
-    try {
-      const userId = req.jwtDecoded._id
-      const { page, itemsPerPage, q } = req.query
-      const queryFilters = q
-      const results = await BoardService.getBoards(
-        userId,
-        page,
-        itemsPerPage,
-        queryFilters
-      )
-
-      res.status(StatusCodes.OK).json(results)
-    } catch (error) {
-      next(error)
-    }
+  static getBoards = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.getBoards({
+        userContext: req.userContext,
+        data: req.query
+      })
+    }).send(res)
   }
 
-  static getDetails = async (req, res, next) => {
-    try {
-      const board = await BoardService.getDetails(
-        req.jwtDecoded._id,
-        req.params.id
-      )
-      res.status(StatusCodes.OK).json(board)
-    } catch (error) {
-      next(error)
-    }
+  static getDetails = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.getDetails({
+        _id: req.params.id,
+        userContext: req.userContext
+      })
+    }).send(res)
   }
 
-  static createNew = async (req, res, next) => {
-    try {
-      const userId = req.jwtDecoded._id
-      const createdBoard = await BoardService.createNew(userId, req.body)
-      res.status(StatusCodes.CREATED).json(createdBoard)
-    } catch (error) {
-      next(error)
-    }
+  static createNew = async (req, res) => {
+    new CreatedSuccessResponse({
+      metadata: await BoardService.createNew({
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
   }
 
-  static update = async (req, res, next) => {
-    try {
-      const boardId = req.params.id
-      const updatedBoard = await BoardService.update(boardId, req.body)
-
-      res.status(StatusCodes.OK).json(updatedBoard)
-    } catch (error) {
-      next(error)
-    }
+  static update = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.update({
+        _id: req.params.id,
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
   }
 
-  static moveCardToDifferentColumn = async (req, res, next) => {
-    try {
-      const result = await BoardService.moveCardToDifferentColumn(req.body)
-
-      res.status(StatusCodes.OK).json(result)
-    } catch (error) {
-      next(error)
-    }
+  static moveCardToDifferentColumn = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.moveCardToDifferentColumn({ data: req.body })
+    }).send(res)
   }
 }
 export default BoardController

@@ -73,7 +73,7 @@ class UserController {
 
   static update = async (req, res, next) => {
     try {
-      const userId = req.jwtDecoded._id
+      const userId = req.userContext._id
       const userAvatarFile = req.file
 
       const updatedUser = await UserService.update(

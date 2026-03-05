@@ -2,32 +2,31 @@ import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/board.model'
 import { columnModel } from '~/models/column.model'
 import { cardModel } from '~/models/card.model'
-
-import ApiError from '~/utils/ApiError'
-import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
-import { DEFAULT_PAGE, DEFAULT_ITEMS_PER_PAGE } from '~/utils/constants'
+import { NotFoundErrorResponse } from '~/core/error.response'
+import BoardRepo from '~/repo/board.repo'
 
 class BoardService {
-  static getBoards = async (userId, page, itemsPerPage, queryFilters) => {
-    if (!page) page = DEFAULT_PAGE
-    if (!itemsPerPage) itemsPerPage = DEFAULT_ITEMS_PER_PAGE
+  static getBoards = async ({ userContext, data }) => {
+    const filters = {
+      ...data,
+      userId: userContext._id
+    }
 
-    const results = await boardModel.getBoards(
-      userId,
-      parseInt(page, 10),
-      parseInt(itemsPerPage, 10),
-      parseInt(queryFilters, 10)
-    )
+    const boards = await BoardRepo.getBoards({ filters })
 
-    return results
+    return boards
   }
 
-  static getDetails = async (userId, boardId) => {
-    const board = await boardModel.getDetails(userId, boardId)
-    if (!board) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found!')
+  static getDetails = async ({ _id, userContext }) => {
+    const filters = {
+      _id,
+      userId: userContext._id
     }
+
+    const board = await BoardRepo.getDetails({ filters })
+    if (!board) throw new NotFoundErrorResponse('Board not found!')
+
     const resBoard = cloneDeep(board)
 
     resBoard.columns.forEach((column) => {
@@ -40,42 +39,49 @@ class BoardService {
     return resBoard
   }
 
-  static createNew = async (userId, reqBody) => {
+  static createNew = async ({ userContext, data }) => {
     const newBoard = {
-      ...reqBody,
-      slug: slugify(reqBody.title)
+      ...data,
+      slug: slugify(data.title),
+      userId: userContext._id
     }
-    const createdBoard = await boardModel.createNew(userId, newBoard)
-    const getNewBoard = await boardModel.findOneById(createdBoard.insertedId)
+
+    const createdBoard = await BoardRepo.createOne({ data: newBoard })
+
+    const getNewBoard = await BoardRepo.findOneById({
+      _id: createdBoard.insertedId
+    })
+
     return getNewBoard
   }
 
-  static update = async (boardId, reqBody) => {
+  static update = async ({ _id, userContext, data }) => {
     const updateData = {
-      ...reqBody,
+      ...data,
       updatedAt: Date.now()
     }
-    const updatedBoard = await boardModel.update(boardId, updateData)
+
+    const updatedBoard = await BoardRepo.updateOne({ _id, data: updateData })
 
     return updatedBoard
   }
 
-  static moveCardToDifferentColumn = async (reqBody) => {
-    await columnModel.update(reqBody.prevColumnId, {
-      cardOrderIds: reqBody.prevCardOrderIds,
+  static moveCardToDifferentColumn = async ({ data }) => {
+    await columnModel.update(data.prevColumnId, {
+      cardOrderIds: data.prevCardOrderIds,
       updatedAt: Date.now()
     })
 
-    await columnModel.update(reqBody.nextColumnId, {
-      cardOrderIds: reqBody.nextCardOrderIds,
+    await columnModel.update(data.nextColumnId, {
+      cardOrderIds: data.nextCardOrderIds,
       updatedAt: Date.now()
     })
 
-    await cardModel.update(reqBody.currentCardId, {
-      columnId: reqBody.nextColumnId
+    await cardModel.update(data.currentCardId, {
+      columnId: data.nextColumnId
     })
 
-    return { updateResult: 'Successfully!' }
+    return {}
   }
 }
 

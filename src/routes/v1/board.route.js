@@ -2,30 +2,36 @@ import express from 'express'
 import { boardValidation } from '~/validations/boardValidation'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import BoardController from '~/controllers/board.controller'
+import asyncHandler from '~/helpers/asyncHandler'
 
 const Router = express.Router()
 
 Router.route('/')
-  .get(authMiddleware.isAuthorized, BoardController.getBoards)
+  .get(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(BoardController.getBoards)
+  )
   .post(
-    authMiddleware.isAuthorized,
-    boardValidation.createNew,
-    BoardController.createNew
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(boardValidation.createNew),
+    asyncHandler(BoardController.createNew)
   )
 
 Router.route('/:id')
-  .get(authMiddleware.isAuthorized, BoardController.getDetails)
+  .get(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(BoardController.getDetails)
+  )
   .put(
-    authMiddleware.isAuthorized,
-    boardValidation.update,
-    BoardController.update
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(boardValidation.update),
+    asyncHandler(BoardController.update)
   )
 
-// API hỗ trợ việc di chuyển card giữa các column khác nhau trong một board
 Router.route('/supports/moving_card').put(
-  authMiddleware.isAuthorized,
-  boardValidation.moveCardToDifferentColumn,
-  BoardController.moveCardToDifferentColumn
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(boardValidation.moveCardToDifferentColumn),
+  asyncHandler(BoardController.moveCardToDifferentColumn)
 )
 
 export const boardRoute = Router
