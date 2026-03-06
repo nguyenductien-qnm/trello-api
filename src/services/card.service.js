@@ -1,25 +1,26 @@
-import { cardModel } from '~/models/card.model'
 import { columnModel } from '~/models/column.model'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
+import CardRepo from '~/repo/card.repo'
 
 class CardService {
-  static createNew = async (reqBody) => {
-    const newCard = {
-      ...reqBody
-    }
-    const createdCard = await cardModel.createNew(newCard)
-    const getNewCard = await cardModel.findOneById(createdCard.insertedId)
+  static createNew = async ({ data }) => {
+    const createdCard = await CardRepo.createOne({ data })
 
-    if (getNewCard) await columnModel.pushCardOrderIds(getNewCard)
+    const card = await CardRepo.findOneById({
+      _id: createdCard.insertedId
+    })
 
-    return getNewCard
+    if (card) await columnModel.pushCardOrderIds(card)
+
+    return card
   }
 
-  static update = async (cardId, reqBody, cardCoverFile, userInfo) => {
+  static update = async ({ _id, userContext, data, cardCoverFile }) => {
     const updateData = {
-      ...reqBody,
+      ...data,
       updatedAt: Date.now()
     }
+
     let updatedCard = {}
 
     if (cardCoverFile) {
@@ -27,24 +28,25 @@ class CardService {
         cardCoverFile.buffer,
         'card-cover'
       )
-      updatedCard = await cardModel.update(cardId, {
-        cover: uploadResult.secure_url
+      updatedCard = await CardRepo.updateOne({
+        _id,
+        data: { cover: uploadResult.secure_url }
       })
     } else if (updateData.commentToAdd) {
       const commentData = {
         ...updateData.commentToAdd,
-        userId: userInfo._id,
-        userEmail: userInfo.email,
+        userId: userContext._id,
+        userEmail: userContext.email,
         commentedAt: Date.now()
       }
-      updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
+      updatedCard = await CardRepo.unshiftNewComment({ _id, data: commentData })
     } else if (updateData.incomingMemberInfo) {
-      updatedCard = await cardModel.updateMembers(
-        cardId,
-        updateData.incomingMemberInfo
-      )
+      updatedCard = await CardRepo.updateMembers({
+        _id,
+        data: updateData.incomingMemberInfo
+      })
     } else {
-      updatedCard = await cardModel.update(cardId, updateData)
+      updatedCard = await CardRepo.updateOne({ _id, data: updateData })
     }
 
     return updatedCard

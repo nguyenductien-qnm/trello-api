@@ -167,5 +167,6 @@ export const invitationModel = {
   createNewBoardInvitation,
   findOneById,
   findByUser,
-  update
+  update,
+  validateBeforeCreate
 }

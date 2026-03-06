@@ -8,7 +8,7 @@ import { cardModel } from '~/models/card.model'
 import { userModel } from '~/models/user.model'
 
 class BoardRepo {
-  static findOneById = async ({ _id }) => {
+  static findById = async ({ _id }) => {
     const result = await GET_DB()
       .collection(boardModel.BOARD_COLLECTION_NAME)
       .findOne({ _id: new ObjectId(_id) })
@@ -172,6 +172,39 @@ class BoardRepo {
       .findOneAndUpdate(
         { _id: new ObjectId(_id) },
         { $set: data },
+        { returnDocument: 'after' }
+      )
+    return result
+  }
+
+  static pushColumnOrderIds = async ({ column }) => {
+    const result = await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $push: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: 'after' }
+      )
+    return result
+  }
+
+  static pullColumnOrderIds = async ({ column }) => {
+    const result = await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $pull: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: 'after' }
+      )
+    return result
+  }
+
+  static pushMemberIds = async ({ _id, userId }) => {
+    const result = await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(_id) },
+        { $push: { memberIds: new ObjectId(userId) } },
         { returnDocument: 'after' }
       )
     return result

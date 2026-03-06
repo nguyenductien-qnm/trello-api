@@ -17,15 +17,15 @@ class BoardController {
   static getDetails = async (req, res) => {
     new OkSuccessResponse({
       metadata: await BoardService.getDetails({
-        _id: req.params.id,
+        _id: req.params._id,
         userContext: req.userContext
       })
     }).send(res)
   }
 
-  static createNew = async (req, res) => {
+  static create = async (req, res) => {
     new CreatedSuccessResponse({
-      metadata: await BoardService.createNew({
+      metadata: await BoardService.create({
         userContext: req.userContext,
         data: req.body
       })
@@ -35,7 +35,7 @@ class BoardController {
   static update = async (req, res) => {
     new OkSuccessResponse({
       metadata: await BoardService.update({
-        _id: req.params.id,
+        _id: req.params._id,
         userContext: req.userContext,
         data: req.body
       })

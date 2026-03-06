@@ -3,7 +3,6 @@ import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { EMAIL_RULE, EMAIL_RULE_MESSAGE } from '~/utils/validators'
 
-// Define tạm 2 roles cho user, tùy việc mở rộng dự án như thế nào mà mọi người có thể thêm role tùy ý sao cho phù hợp sau.
 const USER_ROLES = {
   CLIENT: 'client',
   ADMIN: 'admin'
@@ -31,23 +30,10 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false)
 })
 
-// Chỉ định ra những Fields mà chúng ta không muốn cho phép cập nhật trong hàm update()
 const INVALID_UPDATE_FIELDS = ['_id', 'email', 'username', 'createdAt']
 
 const validateBeforeCreate = async (data) => {
   return await USER_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-}
-
-const createNew = async (data) => {
-  try {
-    const validData = await validateBeforeCreate(data)
-    const createdUser = await GET_DB()
-      .collection(USER_COLLECTION_NAME)
-      .insertOne(validData)
-    return createdUser
-  } catch (error) {
-    throw new Error(error)
-  }
 }
 
 const findOneById = async (userId) => {
@@ -98,8 +84,8 @@ export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   USER_ROLES,
-  createNew,
   findOneById,
   findOneByEmail,
-  update
+  update,
+  validateBeforeCreate
 }

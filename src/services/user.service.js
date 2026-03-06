@@ -1,6 +1,3 @@
-import { userModel } from '~/models/user.model'
-import ApiError from '~/utils/ApiError'
-import { StatusCodes } from 'http-status-codes'
 import bcryptjs from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { pickUser } from '~/utils/formatters'
@@ -9,83 +6,80 @@ import { sendEmailService } from '~/providers/NodeMailer'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
 import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
+import UserRepo from '~/repo/user.repo'
+import {
+  ConflictErrorResponse,
+  ForbiddenErrorResponse,
+  NotFoundErrorResponse
+} from '~/core/error.response'
 
 class UserService {
-  static createNew = async (reqBody) => {
-    const existsUser = await userModel.findOneByEmail(reqBody.email)
-    if (existsUser) {
-      throw new ApiError(StatusCodes.CONFLICT, 'Email already exists!')
-    }
+  static create = async ({ data }) => {
+    const { email } = data
+    const existsUser = await UserRepo.findByEmail({ email })
+    if (existsUser) throw new ConflictErrorResponse('Email already exists!')
+
     const newUser = {
-      email: reqBody.email,
-      password: bcryptjs.hashSync(reqBody.password, 8),
-      username: reqBody.email.split('@')[0],
-      displayName: reqBody.email.split('@')[0],
+      email: email,
+      password: bcryptjs.hashSync(data.password, 8),
+      username: email.split('@')[0],
+      displayName: email.split('@')[0],
       verifyToken: uuidv4()
     }
 
-    const createdUser = await userModel.createNew(newUser)
-    const getNewUser = await userModel.findOneById(createdUser.insertedId)
+    const createdUser = await UserRepo.createOne({ data: newUser })
 
-    const verificationLink = `${WEBSITE_DOMAIN}/account/verification?email=${getNewUser.email}&token=${getNewUser.verifyToken}`
+    const user = await UserRepo.findById({ _id: createdUser.insertedId })
+
+    const verificationLink = `${WEBSITE_DOMAIN}/account/verification?email=${user.email}&token=${user.verifyToken}`
 
     const customSubject =
       'Trello MERN Stack Advanced: Please verify your email before using our services!'
+
     const htmlContent = `
      <h3>Here is your verification link:</h3>
      <h3>${verificationLink}</h3>
-     <h3>Sincerely,<br/> - Trungquandev - Một Lập Trình Viên - </h3>
+     <h3>Sincerely,<br/> - Trungquandev - Một Lập Trình Viên - </h3>x
    `
-    sendEmailService(getNewUser.email, customSubject, htmlContent)
-    return pickUser(getNewUser)
+    sendEmailService(user.email, customSubject, htmlContent)
+    return pickUser(user)
   }
 
-  static verifyAccount = async (reqBody) => {
-    const existsUser = await userModel.findOneByEmail(reqBody.email)
-    if (!existsUser) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
-    }
-    if (existsUser.isActive) {
-      throw new ApiError(
-        StatusCodes.NOT_ACCEPTABLE,
-        'Your account is already active!'
-      )
-    }
-    if (existsUser.verifyToken !== reqBody.token) {
-      throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Token is invalid!')
-    }
-    const updateData = {
-      isActive: true,
-      verifyToken: null
-    }
-    const updatedUser = await userModel.update(existsUser._id, updateData)
+  static verifyAccount = async ({ data }) => {
+    const existsUser = await UserRepo.findByEmail({ email: data.email })
+
+    if (!existsUser) throw new NotFoundErrorResponse('Account not found!')
+
+    if (existsUser.isActive)
+      throw new ForbiddenErrorResponse('Your account is already active!')
+
+    if (existsUser.verifyToken !== data.token)
+      throw new ForbiddenErrorResponse('Token is invalid!')
+
+    const updateData = { isActive: true, verifyToken: null }
+
+    const updatedUser = await UserRepo.updateById({
+      _id: existsUser._id,
+      data: updateData
+    })
 
     return pickUser(updatedUser)
   }
 
-  static login = async (reqBody) => {
-    const existUser = await userModel.findOneByEmail(reqBody.email)
+  static login = async ({ data }) => {
+    const existUser = await UserRepo.findByEmail({ email: data.email })
 
-    if (!existUser)
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
+    if (!existUser) throw new NotFoundErrorResponse('Account not found!')
 
     if (!existUser.isActive)
-      throw new ApiError(
-        StatusCodes.NOT_ACCEPTABLE,
-        'Your account is not active!'
-      )
+      throw new ForbiddenErrorResponse('Your account is not active!')
 
-    if (!bcryptjs.compareSync(reqBody.password, existUser.password)) {
-      throw new ApiError(
-        StatusCodes.NOT_ACCEPTABLE,
+    if (!bcryptjs.compareSync(data.password, existUser.password))
+      throw new ForbiddenErrorResponse(
         'Your email or password is not incorrect!'
       )
-    }
 
-    const userInfo = {
-      _id: existUser._id,
-      email: existUser.email
-    }
+    const userInfo = { _id: existUser._id, email: existUser.email }
 
     const accessToken = await JwtProvider.generateToken(
       userInfo,
@@ -102,7 +96,7 @@ class UserService {
     return { ...pickUser(existUser), accessToken, refreshToken }
   }
 
-  static refreshToken = async (clientRefreshToken) => {
+  static refreshToken = async ({ clientRefreshToken }) => {
     const refreshTokenDecoded = await JwtProvider.verifyToken(
       clientRefreshToken,
       env.REFRESH_TOKEN_SECRET_SIGNATURE
@@ -122,39 +116,40 @@ class UserService {
     return { accessToken }
   }
 
-  static update = async (userId, reqBody, userAvatarFile) => {
-    const existUser = await userModel.findOneById(userId)
-    if (!existUser)
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
+  static update = async ({ _id, data, userAvatarFile }) => {
+    const existUser = await UserRepo.findById({ _id })
+
+    if (!existUser) throw new NotFoundErrorResponse('Account not found!')
+
     if (!existUser.isActive)
-      throw new ApiError(
-        StatusCodes.NOT_ACCEPTABLE,
-        'Your account is not active!'
-      )
+      throw new ForbiddenErrorResponse('Your account is not active!')
 
     let updatedUser = {}
 
-    if (reqBody.current_password && reqBody.new_password) {
-      if (!bcryptjs.compareSync(reqBody.current_password, existUser.password)) {
-        throw new ApiError(
-          StatusCodes.NOT_ACCEPTABLE,
-          'Your current password is not incorrect!'
+    if (data.current_password && data.new_password) {
+      if (!bcryptjs.compareSync(data.current_password, existUser.password))
+        throw new ForbiddenErrorResponse(
+          'Your current password is not correct!'
         )
-      }
 
-      updatedUser = await userModel.update(existUser._id, {
-        password: bcryptjs.hashSync(reqBody.new_password, 8)
+      updatedUser = await UserRepo.updateById({
+        _id,
+        data: { password: bcryptjs.hashSync(data.new_password, 8) }
       })
     } else if (userAvatarFile) {
       const uploadResult = await CloudinaryProvider.streamUpload(
         userAvatarFile.buffer,
         'users'
       )
-      updatedUser = await userModel.update(existUser._id, {
-        avatar: uploadResult.secure_url
+      updatedUser = await UserRepo.updateById({
+        _id: existUser._id,
+        data: { avatar: uploadResult.secure_url }
       })
     } else {
-      updatedUser = await userModel.update(existUser._id, reqBody)
+      updatedUser = await UserRepo.updateById({
+        _id: existUser._id,
+        data
+      })
     }
     return pickUser(updatedUser)
   }

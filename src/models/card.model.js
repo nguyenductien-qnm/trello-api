@@ -52,25 +52,6 @@ const validateBeforeCreate = async (data) => {
   return await CARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
-const createNew = async (data) => {
-  try {
-    const validData = await validateBeforeCreate(data)
-    // Biến đổi một số dữ liệu liên quan tới ObjectId chuẩn chỉnh
-    const newCardToAdd = {
-      ...validData,
-      boardId: new ObjectId(validData.boardId),
-      columnId: new ObjectId(validData.columnId)
-    }
-
-    const createdCard = await GET_DB()
-      .collection(CARD_COLLECTION_NAME)
-      .insertOne(newCardToAdd)
-    return createdCard
-  } catch (error) {
-    throw new Error(error)
-  }
-}
-
 const findOneById = async (cardId) => {
   try {
     const result = await GET_DB()
@@ -179,10 +160,10 @@ const updateMembers = async (cardId, incomingMemberInfo) => {
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
-  createNew,
   findOneById,
   update,
   deleteManyByColumnId,
   unshiftNewComment,
-  updateMembers
+  updateMembers,
+  validateBeforeCreate
 }

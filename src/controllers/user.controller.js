@@ -1,90 +1,78 @@
 import { StatusCodes } from 'http-status-codes'
 import ms from 'ms'
-import ApiError from '~/utils/ApiError'
 import { env } from '~/config/environment'
 import UserService from '~/services/user.service'
+import {
+  CreatedSuccessResponse,
+  OkSuccessResponse
+} from '~/core/success.response'
 
 class UserController {
-  static createNew = async (req, res, next) => {
-    try {
-      const createdUser = await UserService.createNew(req.body)
-      res.status(StatusCodes.CREATED).json(createdUser)
-    } catch (error) {
-      next(error)
-    }
+  static create = async (req, res) => {
+    new CreatedSuccessResponse({
+      message:
+        'User created successfully! Please check your email to verify your account before using our services!',
+      metadata: await UserService.create({ data: req.body })
+    }).send(res)
   }
 
-  static verifyAccount = async (req, res, next) => {
-    try {
-      const result = await UserService.verifyAccount(req.body)
-      res.status(StatusCodes.OK).json(result)
-    } catch (error) {
-      next(error)
-    }
+  static verifyAccount = async (req, res) => {
+    new OkSuccessResponse({
+      message:
+        'Account verified successfully! You can login to your account now!',
+      metadata: await UserService.verifyAccount({ data: req.body })
+    }).send(res)
   }
 
-  static login = async (req, res, next) => {
-    try {
-      const result = await UserService.login(req.body)
-      res.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: true,
-        sampleSite: 'none',
-        maxAge: ms(env.REFRESH_TOKEN_LIFE)
+  static login = async (req, res) => {
+    const result = await UserService.login({ data: req.body })
+
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sampleSite: 'none',
+      maxAge: ms(env.REFRESH_TOKEN_LIFE)
+    })
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sampleSite: 'none',
+      maxAge: ms(env.REFRESH_TOKEN_LIFE)
+    })
+
+    new OkSuccessResponse({
+      message: 'Login successfully!',
+      metadata: result
+    }).send(res)
+  }
+
+  static logout = async (req, res) => {
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+    res.status(StatusCodes.OK).json({ loggedOut: true })
+  }
+
+  static refreshToken = async (req, res) => {
+    const result = await UserService.refreshToken(req?.cookies?.refreshToken)
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sampleSite: 'none',
+      maxAge: env.REFRESH_TOKEN_LIFE
+    })
+    res.status(StatusCodes.OK).json({ result })
+  }
+
+  static update = async (req, res) => {
+    new OkSuccessResponse({
+      message: 'User updated successfully!',
+      metadata: await UserService.update({
+        _id: req.userContext._id,
+        data: req.body,
+        userAvatarFile: req.file
       })
-
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sampleSite: 'none',
-        maxAge: ms(env.REFRESH_TOKEN_LIFE)
-      })
-
-      res.status(StatusCodes.OK).json(result)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  static logout = async (req, res, next) => {
-    try {
-      res.clearCookie('accessToken')
-      res.clearCookie('refreshToken')
-      res.status(StatusCodes.OK).json({ loggedOut: true })
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  static refreshToken = async (req, res, next) => {
-    try {
-      const result = await UserService.refreshToken(req?.cookies?.refreshToken)
-      res.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: true,
-        sampleSite: 'none',
-        maxAge: env.REFRESH_TOKEN_LIFE
-      })
-      res.status(StatusCodes.OK).json({ result })
-    } catch (error) {
-      next(new ApiError(StatusCodes.FORBIDDEN, 'Please Sign In Again!'))
-    }
-  }
-
-  static update = async (req, res, next) => {
-    try {
-      const userId = req.userContext._id
-      const userAvatarFile = req.file
-
-      const updatedUser = await UserService.update(
-        userId,
-        req.body,
-        userAvatarFile
-      )
-      res.status(StatusCodes.OK).json(updatedUser)
-    } catch (error) {
-      next(error)
-    }
+    }).send(res)
   }
 }
 export default UserController

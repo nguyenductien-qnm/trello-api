@@ -3,30 +3,35 @@ import { userValidation } from '~/validations/userValidation'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import { multerUploadMiddleware } from '~/middlewares/multerUpload.middleware'
 import UserController from '~/controllers/user.controller'
+import asyncHandler from '~/helpers/asyncHandler'
+import validate from '~/utils/validate'
 
 const Router = express.Router()
 
 Router.route('/register').post(
-  userValidation.createNew,
-  UserController.createNew
+  asyncHandler(validate(userValidation.create)),
+  asyncHandler(UserController.create)
 )
 
 Router.route('/verify').put(
-  userValidation.verifyAccount,
-  UserController.verifyAccount
+  asyncHandler(validate(userValidation.verifyAccount)),
+  asyncHandler(UserController.verifyAccount)
 )
 
-Router.route('/login').post(userValidation.login, UserController.login)
+Router.route('/login').post(
+  asyncHandler(validate(userValidation.login)),
+  asyncHandler(UserController.login)
+)
 
-Router.route('/logout').delete(UserController.logout)
+Router.route('/logout').delete(asyncHandler(UserController.logout))
 
-Router.route('/refresh_token').put(UserController.refreshToken)
+Router.route('/refresh_token').put(asyncHandler(UserController.refreshToken))
 
 Router.route('/update').put(
-  authMiddleware.isAuthorized,
-  multerUploadMiddleware.upload.single('avatar'),
-  userValidation.update,
-  UserController.update
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(multerUploadMiddleware.upload.single('avatar')),
+  asyncHandler(validate(userValidation.update)),
+  asyncHandler(UserController.update)
 )
 
 export const userRoute = Router

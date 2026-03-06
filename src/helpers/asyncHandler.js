@@ -9,21 +9,29 @@ const asyncHandler = (fn) => {
     try {
       await fn(req, res, next)
     } catch (err) {
-      if (err.name === 'MongoServerError' && err.code === 11000)
+      if (err?.name === 'MongoServerError' && err?.code === 11000) {
         return next(new BadRequestErrorResponse('Duplicate key error'))
+      }
 
       if (
-        err.name === 'MongooseServerSelectionError' ||
-        err.name === 'MongoNetworkError'
-      )
+        err?.name === 'MongooseServerSelectionError' ||
+        err?.name === 'MongoNetworkError'
+      ) {
         return next(
-          new InternalServerErrorResponse('Database connection error')
+          new InternalServerErrorResponse(
+            'Database connection error',
+            undefined,
+            err
+          )
         )
+      }
 
-      if (err instanceof ErrorResponse) return next(err)
+      if (err instanceof ErrorResponse) {
+        return next(err)
+      }
 
       return next(
-        new InternalServerErrorResponse(err.message || 'Unexpected error')
+        new InternalServerErrorResponse('Unexpected error', undefined, err)
       )
     }
   }

@@ -2,10 +2,14 @@ import { StatusCodes } from 'http-status-codes'
 import { ReasonPhrases } from 'http-status-codes'
 
 class ErrorResponse extends Error {
-  constructor(message, status) {
+  constructor(message, status, originalError = null) {
     super(message)
+
+    this.name = this.constructor.name
     this.status = status
-    this.message = message
+    this.originalError = originalError
+
+    Error.captureStackTrace?.(this, this.constructor)
   }
 }
 
@@ -13,7 +17,7 @@ class ConflictErrorResponse extends ErrorResponse {
   constructor(
     message = ReasonPhrases.CONFLICT,
     metadata = null,
-    statusCode = StatusCodes.FORBIDDEN
+    statusCode = StatusCodes.CONFLICT
   ) {
     super(message, statusCode)
     this.metadata = metadata
@@ -22,8 +26,8 @@ class ConflictErrorResponse extends ErrorResponse {
 
 class BadRequestErrorResponse extends ErrorResponse {
   constructor(
-    message = ReasonPhrases.CONFLICT,
-    statusCode = StatusCodes.FORBIDDEN
+    message = ReasonPhrases.BAD_REQUEST,
+    statusCode = StatusCodes.BAD_REQUEST
   ) {
     super(message, statusCode)
   }
@@ -38,9 +42,10 @@ class GoneErrorResponse extends ErrorResponse {
 class InternalServerErrorResponse extends ErrorResponse {
   constructor(
     message = ReasonPhrases.INTERNAL_SERVER_ERROR,
-    statusCode = StatusCodes.INTERNAL_SERVER_ERROR
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR,
+    originalError = null
   ) {
-    super(message, statusCode)
+    super(message, statusCode, originalError)
   }
 }
 

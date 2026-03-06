@@ -1,45 +1,40 @@
-import { StatusCodes } from 'http-status-codes'
+import {
+  CreatedSuccessResponse,
+  OkSuccessResponse
+} from '~/core/success.response'
 import InvitationService from '~/services/invitation.service'
 
 class InvitationController {
-  static createNewBoardInvitation = async (req, res, next) => {
-    try {
-      const inviterId = req.userContext._id
-      const resInvitation = await InvitationService.createNewBoardInvitation(
-        req.body,
-        inviterId
-      )
-
-      res.status(StatusCodes.CREATED).json(resInvitation)
-    } catch (error) {
-      next(error)
-    }
+  static getInvitations = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await InvitationService.getInvitations({
+        userContext: req.userContext
+      })
+    }).send(res)
   }
 
-  static getInvitations = async (req, res, next) => {
-    try {
-      const userId = req.userContext._id
-      const resInvitation = await InvitationService.getInvitations(userId)
-      res.status(StatusCodes.OK).json(resInvitation)
-    } catch (error) {
-      next(error)
-    }
+  static createNewBoardInvitation = async (req, res) => {
+    new CreatedSuccessResponse({
+      message: 'okk',
+      metadata: await InvitationService.createNewBoardInvitation({
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
   }
 
-  static updateBoardInvitation = async (req, res, next) => {
-    try {
-      const userId = req.userContext._id
-      const { invitationId } = req.params
-      const { status } = req.body
-      const updatedInvitation = await InvitationService.updateBoardInvitation(
+  static updateBoardInvitation = async (req, res) => {
+    const userId = req.userContext._id
+    const { invitationId } = req.params
+    const { status } = req.body
+    new OkSuccessResponse({
+      message: 'update success',
+      metadata: await InvitationService.updateBoardInvitation({
         userId,
         invitationId,
         status
-      )
-      res.status(StatusCodes.OK).json(updatedInvitation)
-    } catch (error) {
-      next(error)
-    }
+      })
+    }).send(res)
   }
 }
 export default InvitationController

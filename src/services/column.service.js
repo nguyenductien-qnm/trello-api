@@ -1,50 +1,44 @@
-import { columnModel } from '~/models/column.model'
-import { boardModel } from '~/models/board.model'
-import { cardModel } from '~/models/card.model'
-import { StatusCodes } from 'http-status-codes'
-import ApiError from '~/utils/ApiError'
+import ColumnRepo from '~/repo/column.repo'
+import BoardRepo from '~/repo/board.repo'
+import CardRepo from '~/repo/card.repo'
+import { NotFoundErrorResponse } from '~/core/error.response'
 
 class ColumnService {
-  static createNew = async (reqBody) => {
-    const newColumn = {
-      ...reqBody
+  static create = async ({ data }) => {
+    const createdColumn = await ColumnRepo.createOne({ data })
+    safd
+    const column = await ColumnRepo.findById({
+      _id: createdColumn.insertedId
+    })
+
+    if (column) {
+      column.cards = []
+      await BoardRepo.pushColumnOrderIds({ column })
     }
-    const createdColumn = await columnModel.createNew(newColumn)
-    const getNewColumn = await columnModel.findOneById(createdColumn.insertedId)
 
-    if (getNewColumn) {
-      getNewColumn.cards = []
-
-      await boardModel.pushColumnOrderIds(getNewColumn)
-    }
-
-    return getNewColumn
+    return column
   }
 
-  static update = async (columnId, reqBody) => {
-    const updateData = {
-      ...reqBody,
-      updatedAt: Date.now()
-    }
-    const updatedColumn = await columnModel.update(columnId, updateData)
+  static update = async ({ _id, data }) => {
+    const updateData = { ...data, updatedAt: Date.now() }
+
+    const updatedColumn = await ColumnRepo.updateById({ _id, data: updateData })
 
     return updatedColumn
   }
 
-  static deleteItem = async (columnId) => {
-    const targetColumn = await columnModel.findOneById(columnId)
+  static deleteItem = async ({ _id }) => {
+    const targetColumn = await ColumnRepo.findById({ _id })
 
-    if (!targetColumn) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Column not found!')
-    }
+    if (!targetColumn) throw new NotFoundErrorResponse('Column not found!')
 
-    await columnModel.deleteOneById(columnId)
+    await ColumnRepo.deleteById({ _id })
 
-    await cardModel.deleteManyByColumnId(columnId)
+    await CardRepo.deleteByColumnId({ columnId: _id })
 
-    await boardModel.pullColumnOrderIds(targetColumn)
+    await BoardRepo.pullColumnOrderIds({ column: targetColumn })
 
-    return { deleteResult: 'Column and its Cards deleted successfully!' }
+    return {}
   }
 }
 export default ColumnService

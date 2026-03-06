@@ -1,5 +1,4 @@
 import { slugify } from '~/utils/formatters'
-import { boardModel } from '~/models/board.model'
 import { columnModel } from '~/models/column.model'
 import { cardModel } from '~/models/card.model'
 import { cloneDeep } from 'lodash'
@@ -25,6 +24,7 @@ class BoardService {
     }
 
     const board = await BoardRepo.getDetails({ filters })
+
     if (!board) throw new NotFoundErrorResponse('Board not found!')
 
     const resBoard = cloneDeep(board)
@@ -39,7 +39,7 @@ class BoardService {
     return resBoard
   }
 
-  static createNew = async ({ userContext, data }) => {
+  static create = async ({ userContext, data }) => {
     const newBoard = {
       ...data,
       slug: slugify(data.title),
@@ -48,7 +48,7 @@ class BoardService {
 
     const createdBoard = await BoardRepo.createOne({ data: newBoard })
 
-    const getNewBoard = await BoardRepo.findOneById({
+    const getNewBoard = await BoardRepo.findById({
       _id: createdBoard.insertedId
     })
 

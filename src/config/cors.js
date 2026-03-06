@@ -1,7 +1,6 @@
 import { WHITELIST_DOMAINS } from '~/utils/constants'
 import { env } from '~/config/environment'
-import { StatusCodes } from 'http-status-codes'
-import ApiError from '~/utils/ApiError'
+import { ForbiddenErrorResponse } from '~/core/error.response'
 
 // Cấu hình CORS Option trong dự án thực tế (Video số 62 trong chuỗi MERN Stack Pro)
 export const corsOptions = {
@@ -19,12 +18,8 @@ export const corsOptions = {
       return callback(null, true)
     }
 
-    // Cuối cùng nếu domain không được chấp nhận thì trả về lỗi
     return callback(
-      new ApiError(
-        StatusCodes.FORBIDDEN,
-        `${origin} not allowed by our CORS Policy.`
-      )
+      new ForbiddenErrorResponse(`${origin} not allowed by our CORS Policy.`)
     )
   },
 

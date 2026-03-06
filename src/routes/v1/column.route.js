@@ -2,25 +2,29 @@ import express from 'express'
 import { columnValidation } from '~/validations/columnValidation'
 import { authMiddleware } from '~/middlewares/auth.middleware'
 import ColumnController from '~/controllers/column.controller'
+import asyncHandler from '~/helpers/asyncHandler'
+import validate from '~/utils/validate'
+import { validateIdParamSchema } from '~/validations/commonValidation'
 
 const Router = express.Router()
 
 Router.route('/').post(
-  authMiddleware.isAuthorized,
-  columnValidation.createNew,
-  ColumnController.createNew
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(validate(columnValidation.create)),
+  asyncHandler(ColumnController.create)
 )
 
-Router.route('/:id')
+Router.route('/:_id')
   .put(
-    authMiddleware.isAuthorized,
-    columnValidation.update,
-    ColumnController.update
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(validate(validateIdParamSchema, 'params')),
+    asyncHandler(validate(columnValidation.update)),
+    asyncHandler(ColumnController.update)
   )
   .delete(
-    authMiddleware.isAuthorized,
-    columnValidation.deleteItem,
-    ColumnController.deleteItem
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(validate(validateIdParamSchema, 'params')),
+    asyncHandler(ColumnController.deleteItem)
   )
 
 export const columnRoute = Router
