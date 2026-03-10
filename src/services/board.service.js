@@ -4,6 +4,7 @@ import { cardModel } from '~/models/card.model'
 import { cloneDeep } from 'lodash'
 import { NotFoundErrorResponse } from '~/core/error.response'
 import BoardRepo from '~/repo/board.repo'
+import CardRepo from '~/repo/card.repo'
 
 class BoardService {
   static getBoards = async ({ userContext, data }) => {
@@ -77,8 +78,9 @@ class BoardService {
       updatedAt: Date.now()
     })
 
-    await cardModel.update(data.currentCardId, {
-      columnId: data.nextColumnId
+    await CardRepo.updateOne({
+      _id: data.currentCardId,
+      data: { columnId: data.nextColumnId }
     })
 
     return {}

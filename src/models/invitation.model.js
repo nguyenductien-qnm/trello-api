@@ -2,36 +2,41 @@ import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
-import { INVITATION_TYPES, BOARD_INVITATION_STATUS } from '~/utils/constants'
 import { userModel } from './user.model'
 import { boardModel } from './board.model'
+import {
+  INVITATION_ENTITY,
+  INVITATION_STATUS
+} from '~/constant/enum/invitation.enum'
 
 const INVITATION_COLLECTION_NAME = 'invitations'
+
 const INVITATION_COLLECTION_SCHEMA = Joi.object({
   inviterId: Joi.string()
     .required()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE),
+
   inviteeId: Joi.string()
     .required()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE),
-  type: Joi.string()
+
+  entity: Joi.string()
     .required()
-    .valid(...Object.values(INVITATION_TYPES)),
-  boardInvitation: Joi.object({
-    boardId: Joi.string()
-      .required()
-      .pattern(OBJECT_ID_RULE)
-      .message(OBJECT_ID_RULE_MESSAGE),
-    status: Joi.string()
-      .required()
-      .valid(...Object.values(BOARD_INVITATION_STATUS))
-  }).optional(),
+    .valid(...INVITATION_ENTITY),
+
+  entityId: Joi.string()
+    .required()
+    .pattern(OBJECT_ID_RULE)
+    .message(OBJECT_ID_RULE_MESSAGE),
+
+  status: Joi.string()
+    .required()
+    .valid(...INVITATION_STATUS),
 
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null),
-  _destroy: Joi.boolean().default(false)
+  updatedAt: Joi.date().timestamp('javascript').default(null)
 })
 
 const INVALID_UPDATE_FIELDS = [
