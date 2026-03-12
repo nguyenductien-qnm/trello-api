@@ -29,9 +29,8 @@ const CARD_ATTACHMENT_COLLECTION_SCHEMA = Joi.object({
 
   status: Joi.string().valid('active', 'deleted').default('active'),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const cardModel = {

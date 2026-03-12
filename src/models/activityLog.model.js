@@ -20,7 +20,7 @@ const ACTIVITY_LOG_COLLECTION_SCHEMA = Joi.object({
 
   content: Joi.string().required(),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now)
+  createdAt: Joi.date().default(() => new Date())
 })
 
 export const boardModel = {

@@ -26,8 +26,8 @@ const COLUMN_COLLECTION_SCHEMA = Joi.object({
     .valid(...COLUMN_STATUS)
     .default('active'),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 // Chỉ định ra những Fields mà chúng ta không muốn cho phép cập nhật trong hàm update()

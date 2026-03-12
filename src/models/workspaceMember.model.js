@@ -10,6 +10,11 @@ const WORKSPACE_MEMBER_COLLECTION_SCHEMA = Joi.object({
     .message(OBJECT_ID_RULE_MESSAGE)
     .required(),
 
+  userId: Joi.string()
+    .pattern(OBJECT_ID_RULE)
+    .message(OBJECT_ID_RULE_MESSAGE)
+    .required(),
+
   workspaceRoleId: Joi.string()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE)
@@ -18,19 +23,27 @@ const WORKSPACE_MEMBER_COLLECTION_SCHEMA = Joi.object({
   invitedBy: Joi.string()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE)
+    .allow(null)
     .required(),
 
   status: Joi.string()
     .valid(...WORKSPACE_MEMBER_STATUS)
-    .required(),
+    .default('active'),
 
-  joinAt: Joi.date().timestamp('javascript').default(null),
+  joinAt: Joi.date().allow(null).default(null),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
+
+const validateBeforeCreate = async (data) => {
+  return await WORKSPACE_MEMBER_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
 
 export const workspaceMemberModel = {
   WORKSPACE_MEMBER_COLLECTION_NAME,
-  WORKSPACE_MEMBER_COLLECTION_SCHEMA
+  WORKSPACE_MEMBER_COLLECTION_SCHEMA,
+  validateBeforeCreate
 }

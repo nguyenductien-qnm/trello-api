@@ -29,10 +29,10 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
     .valid(...TASK_STATUS)
     .default('pending'),
 
-  dueAt: Joi.date().timestamp('javascript').default(null),
+  dueAt: Joi.date().allow(null).default(null),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const taskModel = {

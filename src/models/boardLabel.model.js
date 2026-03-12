@@ -20,9 +20,8 @@ const BOARD_LABEL_COLLECTION_SCHEMA = Joi.object({
     .valid(...LABEL_STATUS)
     .default('active'),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const boardLabelModel = {

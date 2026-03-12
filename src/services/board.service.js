@@ -1,12 +1,53 @@
 import { slugify } from '~/utils/formatters'
 import { columnModel } from '~/models/column.model'
-import { cardModel } from '~/models/card.model'
 import { cloneDeep } from 'lodash'
 import { NotFoundErrorResponse } from '~/core/error.response'
 import BoardRepo from '~/repo/board.repo'
 import CardRepo from '~/repo/card.repo'
+import WorkspaceRepo from '~/repo/workspace.repo'
+import { ObjectId } from 'mongodb'
 
 class BoardService {
+  static getBoardOverview = async ({ userContext, data }) => {
+    const workspaces = await WorkspaceRepo.findMany({
+      filter: { ownerId: userContext._id.toString() }
+    })
+
+    if (!workspaces || !workspaces.length) return []
+
+    const workspaceIds = workspaces.map((w) => w._id.toString())
+
+    const boards = await BoardRepo.findMany({
+      filter: { workspaceId: { $in: workspaceIds } }
+    })
+
+    const result = workspaces.map((workspace) => {
+      const workspaceId = workspace._id.toString()
+
+      return {
+        ...workspace,
+        boards:
+          boards?.filter((board) => board.workspaceId === workspaceId) || []
+      }
+    })
+
+    return result
+  }
+
+  static fetchBoardByWorkspaceId = async ({ workspaceId, userContext }) => {
+    const [workspace, boards, count] = await Promise.all([
+      WorkspaceRepo.findOne({ filter: { _id: new ObjectId(workspaceId) } }),
+      BoardRepo.findMany({
+        filter: { workspaceId: new ObjectId(workspaceId) }
+      }),
+      BoardRepo.count({ filter: { workspaceId: new ObjectId(workspaceId) } })
+    ])
+
+    if (!workspace) throw new NotFoundErrorResponse('Workspace not found.')
+
+    return { workspace, boards, count }
+  }
+
   static getBoards = async ({ userContext, data }) => {
     const filters = {
       ...data,

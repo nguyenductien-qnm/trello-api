@@ -6,4 +6,5 @@ const SUBSCRIPTION_STATUS = [
   'canceled',
   'expired'
 ]
+
 export { SUBSCRIPTION_STATUS }

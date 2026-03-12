@@ -15,6 +15,19 @@ class BoardRepo {
     return result
   }
 
+  static findMany = async ({ filter, options = {} }) => {
+    return await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .find(filter, options)
+      .toArray()
+  }
+
+  static count = async ({ filter = {} }) => {
+    return await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .countDocuments(filter)
+  }
+
   static getBoards = async ({ filters }) => {
     const page = filters?.page ?? DEFAULT_PAGE
     const itemsPerPage = filters?.itemsPerPage ?? DEFAULT_ITEMS_PER_PAGE

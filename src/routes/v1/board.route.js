@@ -8,6 +8,11 @@ import { validateIdParamSchema } from '~/validations/commonValidation'
 
 const Router = express.Router()
 
+Router.route('/workspace/:workspaceId').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.fetchBoardByWorkspaceId)
+)
+
 Router.route('/')
   .get(
     asyncHandler(authMiddleware.isAuthorized),

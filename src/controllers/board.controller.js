@@ -5,9 +5,27 @@ import {
 import BoardService from '~/services/board.service'
 
 class BoardController {
+  static fetchBoardByWorkspaceId = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.fetchBoardByWorkspaceId({
+        workspaceId: req.params.workspaceId,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
+
   static getBoards = async (req, res) => {
     new OkSuccessResponse({
       metadata: await BoardService.getBoards({
+        userContext: req.userContext,
+        data: req.query
+      })
+    }).send(res)
+  }
+
+  static getBoardOverview = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.getBoardOverview({
         userContext: req.userContext,
         data: req.query
       })

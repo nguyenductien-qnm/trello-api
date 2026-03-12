@@ -39,14 +39,15 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
 
   color: Joi.string().required().min(3).max(50).trim().strict(),
 
-  dueAt: Joi.date().timestamp('javascript').default(null),
+  startedAt: Joi.date().allow(null).default(null),
+  dueAt: Joi.date().allow(null).default(null),
 
   status: Joi.string()
     .valid(...CARD_STATUS)
     .default('active'),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 const validateBeforeCreate = async (data) => {

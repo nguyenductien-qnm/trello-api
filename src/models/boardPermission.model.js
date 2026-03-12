@@ -7,8 +7,8 @@ const BOARD_PERMISSION_COLLECTION_SCHEMA = Joi.object({
 
   description: Joi.string().required().min(3).max(255).trim().strict(),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const boardPermissionModel = {
