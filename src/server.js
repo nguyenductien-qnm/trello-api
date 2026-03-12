@@ -74,6 +74,8 @@ const START_SERVER = () => {
 // Immediately-invoked / Anonymous Async Functions (IIFE)
 ;(async () => {
   try {
+    console.log(process.env.MONGODB_URI);
+    
     console.log('1. Connecting to MongoDB Cloud Atlas...')
     await CONNECT_DB()
     console.log('2. Connected to MongoDB Cloud Atlas!')

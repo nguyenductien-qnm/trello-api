@@ -34,4 +34,18 @@ Router.route('/update').put(
   asyncHandler(UserController.update)
 )
 
+Router.route('/forgot_password').post(
+  asyncHandler(validate(userValidation.forgotPassword)),
+  asyncHandler(UserController.forgotPassword)
+)
+
+Router.route('/change_password').post(
+  asyncHandler(validate(userValidation.changePassword)),
+  asyncHandler(UserController.changePassword)
+)
+
+Router.route('/verify_reset_password_token').post(
+  asyncHandler(UserController.checkResetPasswordToken)
+)
+
 export const userRoute = Router
