@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb'
+import { NotFoundErrorResponse } from '~/core/error.response'
 import SubscriptionRepo from '~/repo/subscription.repo'
 import WorkspaceRepo from '~/repo/workspace.repo'
 import WorkspaceMemberRepo from '~/repo/workspaceMember.repo'
@@ -36,6 +38,25 @@ class WorkspaceService {
     if (!workspaces || !workspaces.length) return []
 
     return workspaces
+  }
+
+  static fetchWorkspaceInfo = async ({ _id, userContext }) => {
+    const workspace = await WorkspaceRepo.findOne({
+      filter: { _id: new ObjectId(_id) }
+    })
+
+    if (!workspace) throw new NotFoundErrorResponse('Workspace not found.')
+
+    return workspace
+  }
+
+  static fetchWorkspaceMember = async ({ _id, data, userContext }) => {
+    const workspaceMember = await WorkspaceMemberRepo.getMembers({
+      filter: { workspaceId: _id },
+      data
+    })
+
+    return workspaceMember
   }
 
   static create = async ({ userContext, data, session = null }) => {

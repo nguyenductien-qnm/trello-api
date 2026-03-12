@@ -10,4 +10,14 @@ Router.route('/').get(
   asyncHandler(WorkspaceController.fetchByUser)
 )
 
+Router.route('/members/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspaceMember)
+)
+
+Router.route('/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspaceInfo)
+)
+
 export const workspaceRoute = Router

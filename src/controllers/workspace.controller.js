@@ -9,5 +9,24 @@ class WorkspaceController {
       })
     }).send(res)
   }
+
+  static fetchWorkspaceInfo = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await WorkspaceService.fetchWorkspaceInfo({
+        _id: req.params._id,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
+
+  static fetchWorkspaceMember = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await WorkspaceService.fetchWorkspaceMember({
+        _id: req.params._id,
+        data: req.query,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
 }
 export default WorkspaceController
