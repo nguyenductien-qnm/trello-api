@@ -19,15 +19,24 @@ const SUBSCRIPTION_COLLECTION_SCHEMA = Joi.object({
     .valid(...SUBSCRIPTION_STATUS)
     .required(),
 
-  startedAt: Joi.date().timestamp('javascript').default(null),
-  endedAt: Joi.date().timestamp('javascript').default(null),
-  canceledAt: Joi.date().timestamp('javascript').default(null),
+  planFeatureSnapshot: Joi.object().default({}),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  startedAt: Joi.date().allow(null).default(null),
+  endedAt: Joi.date().allow(null).default(null),
+  canceledAt: Joi.date().allow(null).default(null),
+
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
+
+const validateBeforeCreate = async (data) => {
+  return await SUBSCRIPTION_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
 
 export const subscriptionModel = {
   SUBSCRIPTION_COLLECTION_NAME,
-  SUBSCRIPTION_COLLECTION_SCHEMA
+  SUBSCRIPTION_COLLECTION_SCHEMA,
+  validateBeforeCreate
 }

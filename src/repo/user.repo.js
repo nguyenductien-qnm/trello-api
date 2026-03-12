@@ -33,6 +33,18 @@ class UserRepo {
         { $set: data },
         { returnDocument: 'after' }
       )
+
+    return result
+  }
+
+  static updateOne = async ({ filter, update, options = {} }) => {
+    const result = await GET_DB()
+      .collection(userModel.USER_COLLECTION_NAME)
+      .findOneAndUpdate(filter, update, {
+        returnDocument: 'after',
+        ...options
+      })
+
     return result
   }
 

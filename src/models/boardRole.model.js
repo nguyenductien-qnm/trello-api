@@ -13,8 +13,8 @@ const BOARD_ROLE_COLLECTION_SCHEMA = Joi.object({
 
   permissionCodes: Joi.array().items(Joi.string().required()),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const boardRoleModel = {

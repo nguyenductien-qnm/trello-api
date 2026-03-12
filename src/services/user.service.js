@@ -12,6 +12,9 @@ import {
   ForbiddenErrorResponse,
   NotFoundErrorResponse
 } from '~/core/error.response'
+import WorkspaceService from './workspace.service'
+import { mongoClientInstance } from '~/config/mongodb'
+import { ObjectId } from 'mongodb'
 
 class UserService {
   static create = async ({ data }) => {
@@ -58,9 +61,28 @@ class UserService {
 
     const updateData = { isActive: true, verifyToken: null }
 
-    const updatedUser = await UserRepo.updateById({
-      _id: existsUser._id,
-      data: updateData
+    let updatedUser = null
+
+    const session = await mongoClientInstance.startSession()
+
+    await session.withTransaction(async () => {
+      const updatedUser = await UserRepo.updateOne({
+        filter: { _id: new ObjectId(existsUser._id) },
+        update: { $set: { ...updateData } },
+        options: { session }
+      })
+
+      const createWorkspaceData = {
+        title: `${updatedUser.username}'s Workspace`,
+        description:
+          'Welcome to your default workspace. Create boards, organize tasks, and collaborate with your team here.'
+      }
+
+      await WorkspaceService.create({
+        userContext: updatedUser,
+        data: createWorkspaceData,
+        session
+      })
     })
 
     return pickUser(updatedUser)

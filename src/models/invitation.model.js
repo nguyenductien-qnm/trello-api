@@ -35,8 +35,8 @@ const INVITATION_COLLECTION_SCHEMA = Joi.object({
     .required()
     .valid(...INVITATION_STATUS),
 
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 const INVALID_UPDATE_FIELDS = [

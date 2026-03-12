@@ -54,7 +54,9 @@ class UserController {
   }
 
   static refreshToken = async (req, res) => {
-    const result = await UserService.refreshToken(req?.cookies?.refreshToken)
+    const result = await UserService.refreshToken({
+      clientRefreshToken: req?.cookies?.refreshToken
+    })
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: true,

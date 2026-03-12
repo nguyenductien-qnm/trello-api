@@ -22,12 +22,11 @@ const PAYMENT_COLLECTION_SCHEMA = Joi.object({
 
   amount: Joi.number().required().min(0),
 
-  paidAt: Joi.date().timestamp('javascript').default(null),
+  paidAt: Joi.date().allow(null).default(null),
+  failedAt: Joi.date().allow(null).default(null),
 
-  failedAt: Joi.date().timestamp('javascript').default(null),
-
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null)
+  createdAt: Joi.date().default(() => new Date()),
+  updatedAt: Joi.date().allow(null).default(null)
 })
 
 export const paymentModel = {

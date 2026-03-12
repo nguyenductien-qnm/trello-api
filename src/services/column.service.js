@@ -6,7 +6,6 @@ import { NotFoundErrorResponse } from '~/core/error.response'
 class ColumnService {
   static create = async ({ data }) => {
     const createdColumn = await ColumnRepo.createOne({ data })
-    safd
     const column = await ColumnRepo.findById({
       _id: createdColumn.insertedId
     })
