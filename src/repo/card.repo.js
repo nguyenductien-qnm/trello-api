@@ -35,6 +35,7 @@ class CardRepo {
         { $set: data },
         { returnDocument: 'after' }
       )
+
     return result
   }
 
