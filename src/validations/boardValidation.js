@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { BOARD_TYPES } from '~/utils/constants'
+import { visibility } from '~/constant/enum/board.enum'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { optionalIdSchema } from './commonValidation'
 
@@ -13,15 +13,19 @@ const create = Joi.object({
     'string.trim': 'Title must not have leading or trailing whitespace.'
   }),
   description: Joi.string().required().min(3).max(255).trim().strict(),
-  type: Joi.string()
+  visibility: Joi.string()
     .required()
-    .valid(...Object.values(BOARD_TYPES))
+    .valid(...Object.values(visibility)),
+  workspaceId: Joi.string()
+    .required()
+    .pattern(OBJECT_ID_RULE)
+    .message(OBJECT_ID_RULE_MESSAGE),
 })
 
 const update = Joi.object({
   title: Joi.string().min(3).max(50).trim().strict(),
   description: Joi.string().min(3).max(255).trim().strict(),
-  type: Joi.string().valid(...Object.values(BOARD_TYPES)),
+  visibility: Joi.string().valid(...Object.values(visibility)),
   columnOrderIds: Joi.array().items(optionalIdSchema)
 })
 

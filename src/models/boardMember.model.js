@@ -34,7 +34,14 @@ const BOARD_MEMBER_COLLECTION_SCHEMA = Joi.object({
   updatedAt: Joi.date().allow(null).default(null)
 })
 
+const validateBeforeCreate = async (data) => {
+  return await BOARD_MEMBER_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
+
 export const boardMemberModel = {
   BOARD_MEMBER_COLLECTION_NAME,
-  BOARD_MEMBER_COLLECTION_SCHEMA
+  BOARD_MEMBER_COLLECTION_SCHEMA,
+  validateBeforeCreate
 }

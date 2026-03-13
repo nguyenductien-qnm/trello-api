@@ -155,25 +155,10 @@ class BoardRepo {
   }
 
   static createOne = async ({ data }) => {
-    const { userId, ...resData } = data
-
-    const { value, error } = boardModel.BOARD_COLLECTION_SCHEMA.validate(
-      resData,
-      {
-        abortEarly: false,
-        stripUnknown: true
-      }
-    )
-    if (error) throw error
-
-    const newBoardToAdd = {
-      ...value,
-      ownerIds: [new ObjectId(userId)]
-    }
-
+    const validData = await boardModel.validateBeforeCreate(data)
     return GET_DB()
       .collection(boardModel.BOARD_COLLECTION_NAME)
-      .insertOne(newBoardToAdd)
+      .insertOne(validData)
   }
 
   static updateOne = async ({ _id, data }) => {

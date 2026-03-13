@@ -9,5 +9,11 @@ class WorkspaceMemberRepo {
       .collection(workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME)
       .insertOne(validData, { session })
   }
+
+  static findOne = async ({ filter, option = {} }) => {
+    return await GET_DB()
+      .collection(workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME)
+      .findOne(filter, option)
+  }
 }
 export default WorkspaceMemberRepo
