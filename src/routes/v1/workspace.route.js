@@ -10,4 +10,39 @@ Router.route('/').get(
   asyncHandler(WorkspaceController.fetchByUser)
 )
 
+Router.route('/permissions').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspacePermission)
+)
+
+Router.route('/roles/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspaceRole)
+)
+
+Router.route('/members/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspaceMember)
+)
+
+Router.route('/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.fetchWorkspaceInfo)
+)
+
+Router.route('/roles').post(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.createRole)
+)
+
+Router.route('/roles').put(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.updateRole)
+)
+
+Router.route('/roles/:roleId').delete(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(WorkspaceController.deleteRole)
+)
+
 export const workspaceRoute = Router

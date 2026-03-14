@@ -1,6 +1,12 @@
+import { ObjectId } from 'mongodb'
+import {
+  ConflictErrorResponse,
+  NotFoundErrorResponse
+} from '~/core/error.response'
 import SubscriptionRepo from '~/repo/subscription.repo'
 import WorkspaceRepo from '~/repo/workspace.repo'
 import WorkspaceMemberRepo from '~/repo/workspaceMember.repo'
+import WorkspacePermissionRepo from '~/repo/workspacePermission.repo'
 import WorkspaceRoleRepo from '~/repo/workspaceRole.repo'
 
 const generateWorkspaceRoleBase = ({ workspaceId }) => {
@@ -36,6 +42,39 @@ class WorkspaceService {
     if (!workspaces || !workspaces.length) return []
 
     return workspaces
+  }
+
+  static fetchWorkspaceInfo = async ({ _id, userContext }) => {
+    const workspace = await WorkspaceRepo.findOne({
+      filter: { _id: new ObjectId(_id) }
+    })
+
+    if (!workspace) throw new NotFoundErrorResponse('Workspace not found.')
+
+    return workspace
+  }
+
+  static fetchWorkspaceMember = async ({ _id, data, userContext }) => {
+    const workspaceMember = await WorkspaceMemberRepo.getMembers({
+      filter: { workspaceId: _id },
+      data
+    })
+
+    return workspaceMember
+  }
+
+  static fetchWorkspaceRole = async ({ _id, userContext }) => {
+    const workspaceRoles = await WorkspaceRoleRepo.findMany({
+      filter: { workspaceId: _id.toString() }
+    })
+
+    return workspaceRoles
+  }
+
+  static fetchWorkspacePermission = async () => {
+    const workspacePermissions = await WorkspacePermissionRepo.findMany({})
+
+    return workspacePermissions
   }
 
   static create = async ({ userContext, data, session = null }) => {
@@ -74,6 +113,42 @@ class WorkspaceService {
     })
 
     await SubscriptionRepo.createOne({ data: createSubscriptionData, session })
+  }
+
+  static createRole = async ({ userContext, data }) => {
+    const createdRole = await WorkspaceRoleRepo.createOne({ data })
+
+    const role = await WorkspaceRoleRepo.findOne({
+      filter: { _id: new ObjectId(createdRole.insertedId) }
+    })
+
+    return role
+  }
+
+  static updateRole = async ({ userContext, data }) => {
+    const updatePromises = data.map((role) => {
+      const { _id, ...rest } = role
+
+      return WorkspaceRoleRepo.updateOne({
+        filter: { _id: new ObjectId(_id) },
+        data: { $set: { ...rest } }
+      })
+    })
+
+    return await Promise.all(updatePromises)
+  }
+
+  static deleteRole = async ({ _id, userContext }) => {
+    const deletedRole = await WorkspaceRoleRepo.deleteOne({
+      filter: { _id: new ObjectId(_id) }
+    })
+
+    if (deletedRole.deletedCount === 0)
+      throw new ConflictErrorResponse(
+        'Role does not exist or has already been deleted.'
+      )
+
+    return {}
   }
 }
 
