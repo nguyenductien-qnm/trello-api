@@ -6,6 +6,8 @@ import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 import { columnModel } from '~/models/column.model'
 import { cardModel } from '~/models/card.model'
 import { userModel } from '~/models/user.model'
+import { boardMemberModel } from '~/models/boardMember.model'
+import { workspaceMemberModel } from '~/models/workspaceMember.model'
 
 class BoardRepo {
   static findById = async ({ _id }) => {
@@ -91,25 +93,132 @@ class BoardRepo {
     }
   }
 
+  // static getDetails = async ({ filters }) => {
+  //   const { _id, userId } = filters
+  //   try {
+  //     const queryConditions = [
+  //       { _id: new ObjectId(_id) },
+  //       { _destroy: false },
+  //       {
+  //         $or: [
+  //           { ownerIds: { $all: [new ObjectId(userId)] } },
+  //           { memberIds: { $all: [new ObjectId(userId)] } }
+  //         ]
+  //       }
+  //     ]
+
+  //     const result = await GET_DB()
+  //       .collection(boardModel.BOARD_COLLECTION_NAME)
+  //       .aggregate([
+  //         {
+  //           $match: { $and: queryConditions }
+  //         },
+  //         {
+  //           $lookup: {
+  //             from: columnModel.COLUMN_COLLECTION_NAME,
+  //             localField: '_id',
+  //             foreignField: 'boardId',
+  //             as: 'columns'
+  //           }
+  //         },
+  //         {
+  //           $lookup: {
+  //             from: cardModel.CARD_COLLECTION_NAME,
+  //             localField: '_id',
+  //             foreignField: 'boardId',
+  //             as: 'cards'
+  //           }
+  //         },
+  //         {
+  //           $lookup: {
+  //             from: userModel.USER_COLLECTION_NAME,
+  //             localField: 'ownerIds',
+  //             foreignField: '_id',
+  //             as: 'owners',
+  //             pipeline: [{ $project: { password: 0, verify_token: 0 } }]
+  //           }
+  //         },
+  //         {
+  //           $lookup: {
+  //             from: userModel.USER_COLLECTION_NAME,
+  //             localField: 'memberIds',
+  //             foreignField: '_id',
+  //             as: 'members',
+  //             pipeline: [{ $project: { password: 0, verify_token: 0 } }]
+  //           }
+  //         }
+  //       ])
+  //       .toArray()
+
+  //     return result[0] || null
+  //   } catch (error) {
+  //     throw new Error(error)
+  //   }
+  // }
+
   static getDetails = async ({ filters }) => {
     const { _id, userId } = filters
     try {
-      const queryConditions = [
-        { _id: new ObjectId(_id) },
-        { _destroy: false },
-        {
-          $or: [
-            { ownerIds: { $all: [new ObjectId(userId)] } },
-            { memberIds: { $all: [new ObjectId(userId)] } }
-          ]
-        }
-      ]
+      const queryConditions = [{ _id: new ObjectId(_id) }]
 
       const result = await GET_DB()
         .collection(boardModel.BOARD_COLLECTION_NAME)
         .aggregate([
           {
             $match: { $and: queryConditions }
+          },
+          // Join boardMember theo boardId
+          {
+            $lookup: {
+              from: boardMemberModel.BOARD_MEMBER_COLLECTION_NAME,
+              let: { boardId: { $toString: '$_id' } },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: [{ $toString: '$boardId' }, '$$boardId']
+                    }
+                  }
+                }
+              ],
+              as: 'boardMembers'
+            }
+          },
+          // Join workspaceMember để tìm userId
+          {
+            $lookup: {
+              from: workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME,
+              let: {
+                workspaceMemberIds: {
+                  $map: {
+                    input: '$boardMembers',
+                    as: 'bm',
+                    in: { $toString: '$$bm.workspaceMemberId' }
+                  }
+                }
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        {
+                          $in: [{ $toString: '$_id' }, '$$workspaceMemberIds']
+                        },
+                        { $eq: [{ $toString: '$userId' }, userId] }
+                      ]
+                    }
+                  }
+                }
+              ],
+              as: 'boardMemberAccess'
+            }
+          },
+          // Chỉ lấy board mà user có quyền truy cập
+          {
+            $match: {
+              'boardMemberAccess.0': { $exists: true }
+            }
           },
           {
             $lookup: {

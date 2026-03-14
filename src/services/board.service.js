@@ -80,17 +80,14 @@ class BoardService {
   }
 
   static fetchBoardByWorkspaceId = async ({ workspaceId, userContext }) => {
-    const [workspace, boards, count] = await Promise.all([
-      WorkspaceRepo.findOne({ filter: { _id: new ObjectId(workspaceId) } }),
+    const [boards, count] = await Promise.all([
       BoardRepo.findMany({
-        filter: { workspaceId: new ObjectId(workspaceId) }
+        filter: { workspaceId }
       }),
       BoardRepo.count({ filter: { workspaceId: new ObjectId(workspaceId) } })
     ])
 
-    if (!workspace) throw new NotFoundErrorResponse('Workspace not found.')
-
-    return { workspace, boards, count }
+    return { boards, count }
   }
 
   static getBoards = async ({ userContext, data }) => {
@@ -129,12 +126,15 @@ class BoardService {
   static create = async ({ userContext, data, session = null }) => {
     const createBoardData = {
       ...data,
-      userId: new ObjectId(userContext._id)
+      createdBy: userContext._id
     }
 
     const createdBoard = await BoardRepo.createOne({ data: createBoardData })
 
-    const createdBoardRole = await BoardRoleRepo.createOne({ data: generateBoardRoleBase({ boardId: createdBoard.insertedId }), session })
+    const createdBoardRole = await BoardRoleRepo.createOne({
+      data: generateBoardRoleBase({ boardId: createdBoard.insertedId }),
+      session
+    })
 
     const workspaceMemberData = await WorkspaceMemberRepo.findOne({
       filter: {
@@ -150,8 +150,12 @@ class BoardService {
       status: BOARD_MEMBER_STATUS[0],
       joinAt: Date.now()
     }
-    
+
     await BoardMemberRepo.createOne({ data: createdBoardMemberData, session })
+
+    const newBoard = await BoardRepo.findById({ _id: createdBoard.insertedId })
+
+    return newBoard
   }
 
   static update = async ({ _id, userContext, data }) => {

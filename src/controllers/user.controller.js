@@ -57,11 +57,12 @@ class UserController {
     const result = await UserService.refreshToken({
       clientRefreshToken: req?.cookies?.refreshToken
     })
+
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: true,
       sampleSite: 'none',
-      maxAge: env.REFRESH_TOKEN_LIFE
+      maxAge: ms(env.REFRESH_TOKEN_LIFE)
     })
     res.status(StatusCodes.OK).json({ result })
   }
@@ -87,10 +88,11 @@ class UserController {
 
   static changePassword = async (req, res) => {
     const result = await UserService.changePassword({
-      data: req.body,
+      data: req.body
     })
     new OkSuccessResponse({
-      message: 'Password changed successfully! Please login with your new password.',
+      message:
+        'Password changed successfully! Please login with your new password.',
       metadata: result
     }).send(res)
   }
@@ -103,6 +105,5 @@ class UserController {
       message: 'Reset password link verified! Please enter your new password.'
     }).send(res)
   }
-
 }
 export default UserController

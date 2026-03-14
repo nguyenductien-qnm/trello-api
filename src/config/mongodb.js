@@ -1,8 +1,8 @@
-import { setServers } from "node:dns/promises";
-import { MongoClient, ServerApiVersion } from "mongodb";
-import { env } from "~/config/environment";
+import { setServers } from 'node:dns/promises'
+import { MongoClient, ServerApiVersion } from 'mongodb'
+import { env } from '~/config/environment'
 
-setServers(["1.1.1.1", "8.8.8.8"]);// FIX LỖI querySrv ECONNREFUSED 
+setServers(['1.1.1.1', '8.8.8.8']) // FIX LỖI querySrv ECONNREFUSED
 
 // Khởi tạo một đối tượng trelloDatabaseInstance ban đầu là null (vì chúng ta chưa connect)
 let trelloDatabaseInstance = null
