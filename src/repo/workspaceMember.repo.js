@@ -12,6 +12,12 @@ class WorkspaceMemberRepo {
       .insertOne(validData, { session })
   }
 
+  static findOne = async ({ filter, option = {} }) => {
+    return await GET_DB()
+      .collection(workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME)
+      .findOne(filter, option)
+  }
+
   static findMany = async ({ filter, options = {} }) => {
     return await GET_DB()
       .collection(workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME)

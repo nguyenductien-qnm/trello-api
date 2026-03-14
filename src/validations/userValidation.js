@@ -46,9 +46,30 @@ const update = Joi.object({
     .message(`new_password: ${PASSWORD_RULE_MESSAGE}`)
 })
 
+const forgotPassword = Joi.object({
+  email: Joi.string()
+    .required()
+    .pattern(EMAIL_RULE)
+    .message(EMAIL_RULE_MESSAGE)
+})
+
+const changePassword = Joi.object({
+  password: Joi.string()
+    .required()
+    .pattern(PASSWORD_RULE)
+    .message(`password: ${PASSWORD_RULE_MESSAGE}`),
+  token: Joi.string().required(),
+  email: Joi.string()
+    .required()
+    .pattern(EMAIL_RULE)
+    .message(`email: ${EMAIL_RULE_MESSAGE}`)
+})
+
 export const userValidation = {
   create,
   verifyAccount,
   login,
+  forgotPassword,
+  changePassword,
   update
 }

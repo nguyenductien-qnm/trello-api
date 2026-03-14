@@ -76,5 +76,33 @@ class UserController {
       })
     }).send(res)
   }
+
+  static forgotPassword = async (req, res) => {
+    const result = await UserService.forgotPassword({ data: req.body })
+    new OkSuccessResponse({
+      message: 'Recovery link sent successfully! Please check your email!',
+      metadata: result
+    }).send(res)
+  }
+
+  static changePassword = async (req, res) => {
+    const result = await UserService.changePassword({
+      data: req.body,
+    })
+    new OkSuccessResponse({
+      message: 'Password changed successfully! Please login with your new password.',
+      metadata: result
+    }).send(res)
+  }
+
+  static checkResetPasswordToken = async (req, res) => {
+    await UserService.checkResetPasswordToken({
+      data: req.body
+    })
+    new OkSuccessResponse({
+      message: 'Reset password link verified! Please enter your new password.'
+    }).send(res)
+  }
+
 }
 export default UserController

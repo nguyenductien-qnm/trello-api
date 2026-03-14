@@ -3,7 +3,7 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import {
   BOARD_STATUS,
   BOARD_TYPE,
-  BOARD_VISIBILITY
+  visibility
 } from '~/constant/enum/board.enum'
 
 const BOARD_COLLECTION_NAME = 'boards'
@@ -31,7 +31,7 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
 
   visibility: Joi.string()
     .required()
-    .valid(...BOARD_VISIBILITY),
+    .valid(...visibility),
 
   type: Joi.string()
     .valid(...BOARD_TYPE)
@@ -56,7 +56,14 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   updatedAt: Joi.date().allow(null).default(null)
 })
 
+const validateBeforeCreate = async (data) => {
+  return await BOARD_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
+
 export const boardModel = {
   BOARD_COLLECTION_NAME,
-  BOARD_COLLECTION_SCHEMA
+  BOARD_COLLECTION_SCHEMA,
+  validateBeforeCreate
 }

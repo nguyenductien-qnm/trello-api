@@ -47,6 +47,13 @@ class UserRepo {
 
     return result
   }
+
+  static findByEmailAndResetPassToken = async ({ email, resetPassToken }) => {
+    const result = await GET_DB()
+      .collection(userModel.USER_COLLECTION_NAME)
+      .findOne({ email, resetPassToken })
+    return result
+  }
 }
 
 export default UserRepo

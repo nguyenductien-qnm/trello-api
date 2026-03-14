@@ -7,9 +7,10 @@ export const WHITELIST_DOMAINS = [
   'https://trello-web-mu.vercel.app'
 ]
 
-export const BOARD_TYPES = {
+export const visibility = {
   PUBLIC: 'public',
-  PRIVATE: 'private'
+  PRIVATE: 'private',
+  WORKSPACE: 'workspace'
 }
 
 export const WEBSITE_DOMAIN =

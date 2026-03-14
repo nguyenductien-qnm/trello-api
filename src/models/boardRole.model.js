@@ -17,7 +17,14 @@ const BOARD_ROLE_COLLECTION_SCHEMA = Joi.object({
   updatedAt: Joi.date().allow(null).default(null)
 })
 
+const validateBeforeCreate = async (data) => {
+  return await BOARD_ROLE_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
+
 export const boardRoleModel = {
   BOARD_ROLE_COLLECTION_NAME,
-  BOARD_ROLE_COLLECTION_SCHEMA
+  BOARD_ROLE_COLLECTION_SCHEMA,
+  validateBeforeCreate
 }

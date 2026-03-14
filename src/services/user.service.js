@@ -175,5 +175,56 @@ class UserService {
     }
     return pickUser(updatedUser)
   }
+
+  static forgotPassword = async ({ data }) => {
+    const email = data.email;
+    const existUser = await UserRepo.findByEmail({ email })
+    if (!existUser) throw new NotFoundErrorResponse('Account not found!')
+
+    const resetPassToken = uuidv4();
+
+    const updatedUser = await UserRepo.updateById({
+      _id: existUser._id,
+      data: { resetPassToken: resetPassToken }
+    })
+
+    const resetPasswordLink = `${WEBSITE_DOMAIN}/auth/change-password?email=${email}&token=${resetPassToken}`
+
+    sendEmailService(
+      email,
+      'Password Recovery Link',
+      `
+        <h3>Here is your password recovery link:</h3>
+        <h3>${resetPasswordLink}</h3>
+        <h3>Sincerely</h3>
+      `
+    )
+    return pickUser(updatedUser)
+  }
+
+  static changePassword = async ({ data }) => {
+    const checkEmailToken = await UserRepo.findByEmailAndResetPassToken({
+      email: data.email,
+      resetPassToken: data.token
+    });
+
+    if (!checkEmailToken) throw new NotFoundErrorResponse('Your password change period has expired.')
+
+    const updateUsers = await UserRepo.updateById({
+      _id: checkEmailToken._id,
+      data: { password: bcryptjs.hashSync(data.password, 8), resetPassToken: null }
+    })
+    return pickUser(updateUsers)
+  }
+
+  static checkResetPasswordToken = async ({ data }) => {
+    const checkEmailToken = await UserRepo.findByEmailAndResetPassToken({
+      email: data.email,
+      resetPassToken: data.token
+    });
+
+    if (!checkEmailToken) throw new NotFoundErrorResponse('Your password change period has expired.')
+    return pickUser(checkEmailToken)
+  }
 }
 export default UserService
