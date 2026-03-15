@@ -65,25 +65,29 @@ class UserService {
 
     const session = await mongoClientInstance.startSession()
 
-    await session.withTransaction(async () => {
-      const updatedUser = await UserRepo.updateOne({
-        filter: { _id: new ObjectId(existsUser._id) },
-        update: { $set: { ...updateData } },
-        options: { session }
-      })
+    try {
+      await session.withTransaction(async () => {
+        const updatedUser = await UserRepo.updateOne({
+          filter: { _id: new ObjectId(existsUser._id) },
+          update: { $set: { ...updateData } },
+          options: { session }
+        })
 
-      const createWorkspaceData = {
-        title: `${updatedUser.username}'s Workspace`,
-        description:
-          'Welcome to your default workspace. Create boards, organize tasks, and collaborate with your team here.'
-      }
+        const createWorkspaceData = {
+          title: `${updatedUser.username}'s Workspace`,
+          description:
+            'Welcome to your default workspace. Create boards, organize tasks, and collaborate with your team here.'
+        }
 
-      await WorkspaceService.create({
-        userContext: updatedUser,
-        data: createWorkspaceData,
-        session
+        await WorkspaceService.create({
+          userContext: updatedUser,
+          data: createWorkspaceData,
+          session
+        })
       })
-    })
+    } finally {
+      await session.endSession()
+    }
 
     return pickUser(updatedUser)
   }

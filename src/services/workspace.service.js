@@ -80,41 +80,65 @@ class WorkspaceService {
   }
 
   static create = async ({ userContext, data, session = null }) => {
-    const createWorkspaceData = { ownerId: userContext._id.toString(), ...data }
+    let createdWorkspaceId = null
+    const execute = async (session) => {
+      const createWorkspaceData = {
+        ownerId: userContext._id.toString(),
+        ...data
+      }
 
-    const createdWorkspace = await WorkspaceRepo.createOne({
-      data: createWorkspaceData,
-      session
-    })
+      const createdWorkspace = await WorkspaceRepo.createOne({
+        data: createWorkspaceData,
+        session
+      })
 
-    const createSubscriptionData = {
-      workspaceId: createdWorkspace.insertedId.toString(),
-      planId: createdWorkspace.insertedId.toString(),
-      status: 'active',
-      startedAt: Date.now()
+      createdWorkspaceId = createdWorkspace.insertedId
+
+      const createdWorkspaceRole = await WorkspaceRoleRepo.createOne({
+        data: generateWorkspaceRoleBase({
+          workspaceId: createdWorkspace.insertedId
+        }),
+        session
+      })
+
+      const createMemberData = {
+        workspaceId: createdWorkspace.insertedId.toString(),
+        workspaceRoleId: createdWorkspaceRole.insertedId.toString(),
+        invitedBy: null,
+        userId: userContext._id.toString(),
+        joinAt: Date.now()
+      }
+
+      await WorkspaceMemberRepo.createOne({
+        data: createMemberData,
+        session
+      })
+
+      await SubscriptionRepo.createOne({
+        data: {
+          workspaceId: createdWorkspace.insertedId.toString(),
+          planId: createdWorkspace.insertedId.toString(),
+          status: 'active',
+          startedAt: Date.now()
+        },
+        session
+      })
     }
 
-    const createdWorkspaceRole = await WorkspaceRoleRepo.createOne({
-      data: generateWorkspaceRoleBase({
-        workspaceId: createdWorkspace.insertedId
-      }),
-      session
-    })
-
-    const createMemberData = {
-      workspaceId: createdWorkspace.insertedId.toString(),
-      workspaceRoleId: createdWorkspaceRole.insertedId.toString(),
-      invitedBy: null,
-      userId: userContext._id.toString(),
-      joinAt: Date.now()
+    if (session) {
+      await execute(session)
+    } else {
+      const newSession = await mongoClientInstance.startSession()
+      try {
+        await newSession.withTransaction(() => execute(newSession))
+      } finally {
+        await newSession.endSession()
+      }
     }
 
-    await WorkspaceMemberRepo.createOne({
-      data: createMemberData,
-      session
+    return await WorkspaceRepo.findOne({
+      filter: { _id: new ObjectId(createdWorkspaceId) }
     })
-
-    await SubscriptionRepo.createOne({ data: createSubscriptionData, session })
   }
 
   static update = async ({ _id, userContext, data }) => {
@@ -142,6 +166,15 @@ class WorkspaceService {
       })
 
       if (deletedWorkspace.deletedCount === 0) throw new NotFoundErrorResponse()
+
+      await WorkspaceRoleRepo.deleteMany({
+        filter: { workspaceId: _id },
+        session
+      })
+      await WorkspaceMemberRepo.deleteMany({
+        filter: { workspaceId: _id },
+        session
+      })
 
       await BoardRepo.updateMany({
         filter: { workspaceId: _id },

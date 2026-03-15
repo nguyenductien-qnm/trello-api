@@ -5,6 +5,15 @@ import {
 import WorkspaceService from '~/services/workspace.service'
 
 class WorkspaceController {
+  static create = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await WorkspaceService.create({
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
+  }
+
   static update = async (req, res) => {
     new OkSuccessResponse({
       metadata: await WorkspaceService.update({

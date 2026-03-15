@@ -5,10 +5,15 @@ import WorkspaceController from '~/controllers/workspace.controller'
 
 const Router = express.Router()
 
-Router.route('/').get(
-  asyncHandler(authMiddleware.isAuthorized),
-  asyncHandler(WorkspaceController.fetchByUser)
-)
+Router.route('/')
+  .get(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(WorkspaceController.fetchByUser)
+  )
+  .post(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(WorkspaceController.create)
+  )
 
 Router.route('/permissions').get(
   asyncHandler(authMiddleware.isAuthorized),
@@ -45,7 +50,7 @@ Router.route('/:_id')
     asyncHandler(authMiddleware.isAuthorized),
     asyncHandler(WorkspaceController.fetchWorkspaceInfo)
   )
-  .post(
+  .put(
     asyncHandler(authMiddleware.isAuthorized),
     asyncHandler(WorkspaceController.update)
   )

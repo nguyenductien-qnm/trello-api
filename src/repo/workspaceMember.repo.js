@@ -107,5 +107,11 @@ class WorkspaceMemberRepo {
       ])
       .toArray()
   }
+
+  static deleteMany = async ({ filter, session }) => {
+    return await GET_DB()
+      .collection(workspaceMemberModel.WORKSPACE_MEMBER_COLLECTION_NAME)
+      .deleteMany(filter, { session })
+  }
 }
 export default WorkspaceMemberRepo

@@ -33,5 +33,11 @@ class WorkspaceRoleRepo {
       .collection(workspaceRoleModel.WORKSPACE_ROLE_COLLECTION_NAME)
       .deleteOne(filter, { session })
   }
+
+  static deleteMany = async ({ filter, session }) => {
+    return await GET_DB()
+      .collection(workspaceRoleModel.WORKSPACE_ROLE_COLLECTION_NAME)
+      .deleteMany(filter, { session })
+  }
 }
 export default WorkspaceRoleRepo
