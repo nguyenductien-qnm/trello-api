@@ -50,12 +50,14 @@ class BoardController {
     }).send(res)
   }
 
+
   static update = async (req, res) => {
     new OkSuccessResponse({
+      message: 'Update board successfully',
       metadata: await BoardService.update({
         _id: req.params._id,
         userContext: req.userContext,
-        data: req.body
+        data: req.body,
       })
     }).send(res)
   }
@@ -63,6 +65,72 @@ class BoardController {
   static moveCardToDifferentColumn = async (req, res) => {
     new OkSuccessResponse({
       metadata: await BoardService.moveCardToDifferentColumn({ data: req.body })
+    }).send(res)
+  }
+
+  static fetchBoardMember = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.fetchBoardMember({
+        _id: req.params._id,
+        data: req.query,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
+
+  static fetchBoardPermission = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.fetchBoardPermission()
+    }).send(res)
+  }
+
+  static fetchBoardRole = async (req, res) => {
+    new OkSuccessResponse({
+      metadata: await BoardService.fetchBoardRole({
+        _id: req.params._id,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
+
+  static createRole = async (req, res) => {
+    new CreatedSuccessResponse({
+      message: 'Create role successfully',
+      metadata: await BoardService.createRole({
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
+  }
+
+  static updateRole = async (req, res) => {
+    new CreatedSuccessResponse({
+      message: 'Update role successfully',
+      metadata: await BoardService.updateRole({
+        userContext: req.userContext,
+        data: req.body
+      })
+    }).send(res)
+  }
+
+  static deleteRole = async (req, res) => {
+    new CreatedSuccessResponse({
+      message: 'Delete role successfully',
+      metadata: await BoardService.deleteRole({
+        _id: req.params.roleId,
+        userContext: req.userContext
+      })
+    }).send(res)
+  }
+
+  static updateStatus = async (req, res) => {
+    new OkSuccessResponse({
+      message: 'Delete board successfully',
+      metadata: await BoardService.updateStatus({
+        _id: req.params._id,
+        userContext: req.userContext,
+        data: req.body,
+      })
     }).send(res)
   }
 }

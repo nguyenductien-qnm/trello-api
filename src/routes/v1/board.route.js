@@ -24,6 +24,21 @@ Router.route('/')
     asyncHandler(BoardController.create)
   )
 
+Router.route('/roles').put(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.updateRole)
+)
+
+Router.route('/permissions').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.fetchBoardPermission)
+)
+
+Router.route('/roles/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.fetchBoardRole)
+)
+
 Router.route('/:_id')
   .get(
     asyncHandler(authMiddleware.isAuthorized),
@@ -36,11 +51,36 @@ Router.route('/:_id')
     asyncHandler(validate(boardValidation.update)),
     asyncHandler(BoardController.update)
   )
+  // .delete(
+  //   asyncHandler(authMiddleware.isAuthorized),
+  //   asyncHandler(BoardController.delete)
+  // )
 
 Router.route('/supports/moving_card').put(
   asyncHandler(authMiddleware.isAuthorized),
   asyncHandler(validate(boardValidation.moveCardToDifferentColumn)),
   asyncHandler(BoardController.moveCardToDifferentColumn)
 )
+
+Router.route('/members/:_id').get(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.fetchBoardMember)
+)
+
+Router.route('/roles').post(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.createRole)
+)
+
+Router.route('/roles/:roleId').delete(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.deleteRole)
+)
+
+Router.route('/status/:_id').put(
+  asyncHandler(authMiddleware.isAuthorized),
+  asyncHandler(BoardController.updateStatus)
+)
+
 
 export const boardRoute = Router

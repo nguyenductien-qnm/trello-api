@@ -1,7 +1,7 @@
 import { slugify } from '~/utils/formatters'
 import { columnModel } from '~/models/column.model'
 import { cloneDeep } from 'lodash'
-import { NotFoundErrorResponse } from '~/core/error.response'
+import { ConflictErrorResponse, NotFoundErrorResponse } from '~/core/error.response'
 import BoardRepo from '~/repo/board.repo'
 import CardRepo from '~/repo/card.repo'
 import WorkspaceRepo from '~/repo/workspace.repo'
@@ -10,6 +10,8 @@ import BoardRoleRepo from '~/repo/boardRole.repo'
 import BoardMemberRepo from '~/repo/boardMember.repo'
 import WorkspaceMemberRepo from '~/repo/workspaceMember.repo'
 import { BOARD_MEMBER_STATUS } from '~/constant/enum/boardMember.enum'
+import BoardPermissionRepo from '~/repo/boardPermission.repo'
+import { BOARD_STATUS } from '~/constant/enum/board.enum'
 
 const generateBoardRoleBase = ({ boardId }) => {
   return {
@@ -187,6 +189,90 @@ class BoardService {
 
     return {}
   }
+
+  static fetchBoardMember = async ({ _id, data, userContext }) => {
+    const boardMember = await BoardMemberRepo.getMembers({
+      filter: { boardId: _id },
+      data
+    })
+
+    return boardMember
+  }
+
+  static fetchBoardPermission = async () => {
+    const boardPermissions = await BoardPermissionRepo.findMany({})
+    
+    return boardPermissions
+  }
+
+  static fetchBoardRole = async ({ _id, userContext }) => {
+    const boardRoles = await BoardRoleRepo.findMany({
+      filter: { boardId: _id.toString() }
+    })
+
+    return boardRoles
+  }
+
+  static createRole = async ({ userContext, data }) => {
+    const createdRole = await BoardRoleRepo.createOne({ data })
+
+    const role = await BoardRoleRepo.findOne({
+      filter: { _id: new ObjectId(createdRole.insertedId) }
+    })
+
+    return role
+  }
+
+  static updateRole = async ({ userContext, data }) => {
+    const updatePromises = data.map((role) => {
+      const { _id, ...rest } = role
+
+      return BoardRoleRepo.updateOne({
+        filter: { _id: new ObjectId(_id) },
+        data: { $set: { ...rest } }
+      })
+    })
+
+    return await Promise.all(updatePromises)
+  }
+
+  static deleteRole = async ({ _id, userContext }) => {
+    const deletedRole = await BoardRoleRepo.deleteOne({
+      filter: { _id: new ObjectId(_id) }
+    })
+
+    if (deletedRole.deletedCount === 0)
+      throw new ConflictErrorResponse(
+        'Role does not exist or has already been deleted.'
+      )
+
+    return {}
+  }
+
+  static updateStatus = async ({ _id, userContext, data }) => {
+    const updateData = {
+      status: BOARD_STATUS[1],
+      updatedAt: Date.now()
+    }
+    
+    const updatedBoard = await BoardRepo.updateOne({ _id, data: updateData })
+
+    return updatedBoard
+  }
+
+  // static delete = async ({ _id, userContext }) => {
+  //   const deleted = await BoardRepo.deleteOne({
+  //     filter: { _id: new ObjectId(_id) }
+  //   })
+
+  //   if (deletedRole.deletedCount === 0)
+  //     throw new ConflictErrorResponse(
+  //       'Role does not exist or has already been deleted.'
+  //     )
+
+  //   return {}
+  // }
+
 }
 
 export default BoardService
