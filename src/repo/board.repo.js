@@ -316,5 +316,11 @@ class BoardRepo {
       )
     return result
   }
+
+  static updateMany = async ({ filter, data, session }) => {
+    return await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .updateMany(filter, data, { returnDocument: 'after', session })
+  }
 }
 export default BoardRepo

@@ -8,6 +8,8 @@ import WorkspaceRepo from '~/repo/workspace.repo'
 import WorkspaceMemberRepo from '~/repo/workspaceMember.repo'
 import WorkspacePermissionRepo from '~/repo/workspacePermission.repo'
 import WorkspaceRoleRepo from '~/repo/workspaceRole.repo'
+import { mongoClientInstance } from '~/config/mongodb'
+import BoardRepo from '~/repo/board.repo'
 
 const generateWorkspaceRoleBase = ({ workspaceId }) => {
   return {
@@ -113,6 +115,42 @@ class WorkspaceService {
     })
 
     await SubscriptionRepo.createOne({ data: createSubscriptionData, session })
+  }
+
+  static update = async ({ _id, userContext, data }) => {
+    const workspaceId = new ObjectId(_id)
+
+    const updatedWorkspace = await WorkspaceRepo.updateOne({
+      filter: { _id: workspaceId },
+      data: { $set: { ...data } }
+    })
+
+    if (updatedWorkspace.matchedCount === 0)
+      throw new NotFoundErrorResponse('Workspace not found')
+
+    return await WorkspaceRepo.findOne({
+      filter: { _id: workspaceId }
+    })
+  }
+
+  static delete = async ({ _id, userContext }) => {
+    const session = await mongoClientInstance.startSession()
+    await session.withTransaction(async () => {
+      const deletedWorkspace = await WorkspaceRepo.deleteOne({
+        filter: { _id: new ObjectId(_id) },
+        session
+      })
+
+      if (deletedWorkspace.deletedCount === 0) throw new NotFoundErrorResponse()
+
+      await BoardRepo.updateMany({
+        filter: { workspaceId: _id },
+        data: { $set: { status: 'archived' } },
+        session
+      })
+    })
+
+    return
   }
 
   static createRole = async ({ userContext, data }) => {

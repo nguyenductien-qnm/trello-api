@@ -25,11 +25,6 @@ Router.route('/members/:_id').get(
   asyncHandler(WorkspaceController.fetchWorkspaceMember)
 )
 
-Router.route('/:_id').get(
-  asyncHandler(authMiddleware.isAuthorized),
-  asyncHandler(WorkspaceController.fetchWorkspaceInfo)
-)
-
 Router.route('/roles').post(
   asyncHandler(authMiddleware.isAuthorized),
   asyncHandler(WorkspaceController.createRole)
@@ -44,5 +39,19 @@ Router.route('/roles/:roleId').delete(
   asyncHandler(authMiddleware.isAuthorized),
   asyncHandler(WorkspaceController.deleteRole)
 )
+
+Router.route('/:_id')
+  .get(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(WorkspaceController.fetchWorkspaceInfo)
+  )
+  .post(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(WorkspaceController.update)
+  )
+  .delete(
+    asyncHandler(authMiddleware.isAuthorized),
+    asyncHandler(WorkspaceController.delete)
+  )
 
 export const workspaceRoute = Router
